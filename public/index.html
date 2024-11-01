@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>solXEN Burn Statistics</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .stats {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="stats">
+        <h2>solXEN Burn Statistics</h2>
+        <p>
+            <strong>Total Burn:</strong> 
+            <span id="totalBurn">Loading...</span>
+        </p>
+        <p>
+            <strong>Total Supply:</strong> 
+            58,294,721,418
+        </p>
+    </div>
+
+    <script>
+        // Format number with commas
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Fetch burn data
+        fetch('/api/burns')
+            .then(response => response.json())
+            .then(data => {
+                const totalBurnElement = document.getElementById('totalBurn');
+                totalBurnElement.textContent = `${formatNumber(data.totalBurn)} (${data.burnPercentage.toFixed(4)}%)`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('totalBurn').textContent = 'Error loading data';
+            });
+    </script>
+</body>
+</html>
