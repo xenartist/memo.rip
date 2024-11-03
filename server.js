@@ -10,7 +10,7 @@ app.use(express.static('public'));
 
 // Route to get burn data
 app.get('/api/burns', (req, res) => {
-    const db = new sqlite3.Database('./solxen-burns.db', (err) => {
+    const db = new sqlite3.Database('./data/solxen-burns.db', (err) => {
         if (err) {
             console.error(err.message);
             return res.status(500).json({ error: 'Failed to connect to database' });
@@ -32,10 +32,13 @@ app.get('/api/burns', (req, res) => {
             burnPercentage
         });
     });
-
-    db.close();
 });
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
+});
+
+process.on('SIGTERM', () => {
+    db.close();
+    process.exit(0);
 });

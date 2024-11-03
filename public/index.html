@@ -4,51 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>solXEN Burn Statistics</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .stats {
-            background-color: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@jup-ag/wallet-adapter@latest/dist/index.umd.js"></script>
 </head>
 <body>
-    <div class="stats">
-        <h2>solXEN Burn Statistics</h2>
-        <p>
-            <strong>Total Burn:</strong> 
-            <span id="totalBurn">Loading...</span>
-        </p>
-        <p>
-            <strong>Total Supply:</strong> 
-            58,294,721,418
-        </p>
+    <div class="container">
+        <header>
+            <h1>solXEN Burn Statistics</h1>
+            <div id="wallet-container"></div>
+        </header>
+
+        <main>
+            <section class="stats-card">
+                <h2>Burn Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <label>Total Burn</label>
+                        <span id="total-burn">Loading...</span>
+                    </div>
+                    <div class="stat-item">
+                        <label>Burn Percentage</label>
+                        <span id="burn-percentage">Loading...</span>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <script>
-        // Format number with commas
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-
-        // Fetch burn data
-        fetch('/api/burns')
-            .then(response => response.json())
-            .then(data => {
-                const totalBurnElement = document.getElementById('totalBurn');
-                totalBurnElement.textContent = `${formatNumber(data.totalBurn)} (${data.burnPercentage.toFixed(4)}%)`;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('totalBurn').textContent = 'Error loading data';
-            });
-    </script>
+    <script src="js/stats.js" type="module"></script>
+    <script src="js/wallet.js" type="text/babel" data-type="module"></script>
+    <script src="js/app.js" type="module"></script>
 </body>
 </html>

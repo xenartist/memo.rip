@@ -1,0 +1,67 @@
+:root {
+    --primary-color: #1a1a1a;
+    --secondary-color: #2d2d2d;
+    --text-color: #ffffff;
+    --accent-color: #4CAF50;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.stats-card {
+    background-color: var(--secondary-color);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-item label {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.stat-item span {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.recent-burns {
+    background-color: var(--secondary-color);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+#burns-table {
+    width: 100%;
+    overflow-x: auto;
+}
