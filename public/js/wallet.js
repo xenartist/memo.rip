@@ -14,7 +14,6 @@ export class WalletManager {
             return;
         }
 
-        // 创建钱包按钮
         const button = document.createElement('button');
         button.textContent = 'Connect Wallet';
         button.className = 'wallet-button';
@@ -32,17 +31,14 @@ export class WalletManager {
 
     async connectWallet() {
         try {
-            // 检查常见的 Solana 钱包
             const wallet = this.detectWallet();
             
             if (!wallet) {
                 throw new Error('No Solana wallet found. Please install Phantom or Solflare wallet.');
             }
 
-            // 请求连接钱包
             const response = await wallet.connect();
             
-            // 获取公钥
             const publicKey = response.publicKey || wallet.publicKey;
             
             if (!publicKey) {
@@ -80,17 +76,17 @@ export class WalletManager {
     }
 
     detectWallet() {
-        // 检查 Phantom 钱包
+        // Phantom wallet
         if (window.phantom?.solana?.isPhantom) {
             return window.phantom.solana;
         }
         
-        // 检查 Solflare 钱包
+        // Solflare wallet
         if (window.solflare?.isSolflare) {
             return window.solflare;
         }
 
-        // 检查通用 Solana 钱包
+        // general solana wallet
         if (window.solana?.isConnected) {
             return window.solana;
         }

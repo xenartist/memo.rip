@@ -1,4 +1,3 @@
-/* 基础样式 */
 :root {
     --primary-color: #4CAF50;
     --hover-color: #45a049;
@@ -20,7 +19,6 @@ header {
     margin-bottom: 30px;
 }
 
-/* 钱包按钮样式 */
 .wallet-button {
     background-color: var(--primary-color);
     border: none;
@@ -49,7 +47,6 @@ header {
     background-color: var(--hover-color);
 }
 
-/* 统计卡片样式 */
 .stats-card {
     background-color: var(--background-color);
     padding: 20px;

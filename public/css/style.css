@@ -1,1 +1,30 @@
- 
+.wallet-button {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors;
+    @apply bg-gray-900 text-white hover:bg-gray-800;
+}
+
+.wallet-button.connected {
+    @apply bg-green-600 hover:bg-green-700;
+}
+
+.wallet-dropdown {
+    @apply absolute right-0 mt-2 w-48 rounded-md shadow-lg;
+    @apply bg-white ring-1 ring-black ring-opacity-5;
+}
+
+.wallet-dropdown-item {
+    @apply block w-full px-4 py-2 text-sm text-gray-700;
+    @apply hover:bg-gray-100 text-left;
+}
+
+.wallet-button.phantom-wallet {
+    @apply bg-purple-600 hover:bg-purple-700;
+}
+
+.wallet-button.solflare-wallet {
+    @apply bg-orange-500 hover:bg-orange-600;
+}
+
+.wallet-button.backpack-wallet {
+    @apply bg-blue-600 hover:bg-blue-700;
+}
