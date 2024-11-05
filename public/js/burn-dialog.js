@@ -33,11 +33,11 @@ export class BurnDialog {
 
     createBurnInstructionData(amount) {
         try {
-            // Create an 9-byte array (1 byte for instruction and 8 bytes for amount)
+            // Create a 9-byte array (1 byte for instruction, 8 bytes for amount)
             const data = new Uint8Array(9);
             
-            // Set instruction index to 17 (burn instruction)
-            data[0] = 17;
+            // Set instruction index to 8 (burn instruction)
+            data[0] = 8;
             
             // Convert amount to little-endian bytes and set in the array
             const tokenAmount = this.getTokenAmount(amount);
@@ -102,30 +102,30 @@ export class BurnDialog {
                 throw new Error('Please connect your wallet first');
             }
 
+            const tokenAccounts = await this.connection.getTokenAccountsByOwner(
+                new PublicKey(this.walletManager.walletState.address),
+                {
+                    mint: this.tokenMint
+                }
+            );
+
+            const userTokenAccount = tokenAccounts.value[0].pubkey;
+            console.log('User token account:', userTokenAccount);
+
             // Create burn instruction
-            // const burnInstruction = new TransactionInstruction({
-            //     programId: this.TOKEN_PROGRAM_ID,
-            //     keys: [
-            //         { pubkey: this.tokenMint, isSigner: false, isWritable: true },
-            //         { pubkey: new PublicKey(this.walletManager.walletState.address), isSigner: true, isWritable: false },
-            //     ],
-            //     data: this.createBurnInstructionData(formData.amount)
-            // });
-
-            // Create and setup transaction
-            // const transaction = new Transaction();
-            // transaction.add(burnInstruction);
-
-            // Create a simple SOL transfer instruction
-            const transferInstruction = solanaWeb3.SystemProgram.transfer({
-                fromPubkey: new PublicKey(this.walletManager.walletState.address),
-                toPubkey: new PublicKey('6AZ7h7qXh3JgiesDfCaszBwn9gfJcKszmLy21nzoRNeB'),
-                lamports: solanaWeb3.LAMPORTS_PER_SOL * 0.0000001
+            const burnInstruction = new TransactionInstruction({
+                programId: this.TOKEN_PROGRAM_ID,
+                keys: [
+                    { pubkey: userTokenAccount, isSigner: false, isWritable: true },  // Token account
+                    { pubkey: this.tokenMint, isSigner: false, isWritable: true },    // Token mint
+                    { pubkey: new PublicKey(this.walletManager.walletState.address), isSigner: true, isWritable: false },  // Owner
+                ],
+                data: this.createBurnInstructionData(formData.amount)  
             });
 
             // Create and setup transaction
             const transaction = new Transaction();
-            transaction.add(transferInstruction);
+            transaction.add(burnInstruction);
             
             // Get latest blockhash
             const { blockhash } = await this.connection.getLatestBlockhash();
