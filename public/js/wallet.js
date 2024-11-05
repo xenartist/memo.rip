@@ -34,7 +34,9 @@ export class WalletManager {
             const wallet = this.detectWallet();
             
             if (!wallet) {
-                throw new Error('No Solana wallet found. Please install Phantom or Solflare wallet.');
+                const message = 'No Solana wallet found. Please install Phantom (https://phantom.app) or Solflare (https://solflare.com) wallet.';
+                console.log(message);
+                throw new Error(message);
             }
 
             const response = await wallet.connect();
@@ -76,6 +78,10 @@ export class WalletManager {
     }
 
     detectWallet() {
+        console.log('Checking wallets:', {
+            phantom: window.phantom?.solana,
+            solflare: window.solflare
+        });
         // Phantom wallet
         if (window.phantom?.solana?.isPhantom) {
             return window.phantom.solana;
