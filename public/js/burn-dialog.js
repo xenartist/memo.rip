@@ -92,6 +92,14 @@ export class BurnDialog {
                 author: document.getElementById('memo-author').value
             };
 
+            // Create memo content as JSON
+            const memoContent = JSON.stringify({
+                title: formData.title,
+                image: formData.image,
+                content: formData.content,
+                author: formData.author
+            });
+
             if (isNaN(formData.amount) || formData.amount <= 0) {
                 throw new Error('Please enter a valid amount');
             }
@@ -123,10 +131,20 @@ export class BurnDialog {
                 data: this.createBurnInstructionData(formData.amount)  
             });
 
+            // Create memo instruction
+            const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
+            const memoInstruction = new TransactionInstruction({
+                programId: MEMO_PROGRAM_ID,
+                keys: [], // Memo program doesn't need any keys
+                data: Buffer.from(memoContent)
+            });
+
+            console.log('Memo content:', memoContent);
+
             // Create and setup transaction
             const transaction = new Transaction();
             transaction.add(burnInstruction);
-            
+            transaction.add(memoInstruction);
             // Get latest blockhash
             const { blockhash } = await this.connection.getLatestBlockhash();
             transaction.recentBlockhash = blockhash;
