@@ -6,6 +6,7 @@ const app = express();
 const port = 3000;
 // Solana RPC endpoint
 const SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
+const TOTAL_SUPPLY = 58401288517;
 // database
 let db;
 
@@ -45,52 +46,56 @@ app.get('/api/test-solana', async (req, res) => {
 // RPC proxy route
 app.post('/api/solana-rpc', async (req, res) => {
     try {
-        // 1. check if it's a getTransaction request
-        if (req.body.method === 'getTransaction') {
-            // 2. forward to Solana RPC to get transaction details
+        console.log('Received RPC request:', req.body.toString());
+        // check if it's a getTransaction request
+        if (JSON.parse(req.body.toString()).method === 'getSignatureStatuses') {
+            console.log('getSignatureStatuses request received');
+            const bodyData = JSON.parse(req.body.toString());
+            const signature = bodyData.params[0][0];  // Get first signature from array
+            
+            // 1. Save signature to database immediately
+            try {
+                await db.run(`
+                    INSERT INTO burns (signature)
+                    VALUES (?)
+                    ON CONFLICT(signature) DO NOTHING
+                `, [signature]);
+            } catch (err) {
+                console.error('Failed to save initial signature:', err);
+            }
+
+            // 2. Forward getSignatureStatuses request to Solana
             const response = await fetch(SOLANA_RPC, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(req.body)
+                body: req.body
             });
-            const transactionData = await response.json();
+            const statusData = await response.json();
+            console.log('Solana RPC response:', JSON.stringify(statusData, null, 2));
 
-            // 3. if it's a successful transaction and contains the information we care about, process the data
-            if (transactionData.result && 
-                isValidBurnTransaction(transactionData.result)) {  
-                
-                // 4. parse transaction data
-                const memoData = parseMemoFromTransaction(transactionData.result);
-                const burnAmount = parseBurnAmountFromTransaction(transactionData.result);
-                
-                // 5. insert into db
-                await db.run(`
-                    INSERT INTO memos (signature, title, image, content, author, amount, timestamp)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                `, [
-                    transactionData.result.transaction.signatures[0],
-                    memoData.title,
-                    memoData.image,
-                    memoData.content,
-                    memoData.author,
-                    burnAmount,
-                    Date.now()
-                ]);
+            // 3. If confirmed/finalized, trigger background processing and return immediately
+            if (statusData.result?.value?.[0]?.confirmationStatus === 'confirmed' ||
+                statusData.result?.value?.[0]?.confirmationStatus === 'finalized') {
 
-                // 6. invalidate cache
-                memoCache.invalidateCache(db).catch(err => {
-                    console.error('Cache update failed:', err);
+                 // Wait 15 seconds
+                 await new Promise(resolve => setTimeout(resolve, 15000));
+
+                console.log('Triggering background processing for signature:', signature);
+                
+                // Trigger background processing without awaiting
+                processTransactionDetails(signature, db).catch(err => {
+                    console.error('Background processing failed:', err);
                 });
             }
 
-            // 7. return the original Solana RPC response
-            res.json(transactionData);
+            // 4. Return signature status to client immediately
+            return res.json(statusData);
         } else {
             // other RPC requests
             const response = await fetch(SOLANA_RPC, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(req.body)
+                body: req.body
             });
             const data = await response.json();
             res.json(data);
@@ -104,8 +109,9 @@ app.post('/api/solana-rpc', async (req, res) => {
 // Route to get burn data
 app.get('/api/burns', async (req, res) => {
     try {
-        const { totalBurn } = await memoCache.getTotalBurn(db);
-        res.json({ totalBurn });
+        const totalBurn = Math.floor((await memoCache.getTotalBurn(db) || 0) / 1_000_000);
+        const burnPercentage = (totalBurn / TOTAL_SUPPLY) * 100;
+        res.json({"totalBurn": totalBurn, "burnPercentage": burnPercentage});
     } catch (error) {
         console.error('Failed to fetch burn stats:', error);
         res.status(500).json({ error: 'Failed to fetch data' });
@@ -268,20 +274,140 @@ async function initializeDatabase() {
     });
 }
 
+// Separate async function for background processing
+async function processTransactionDetails(signature, db) {
+    let retries = 3;
+    console.log(`Starting to process transaction details for signature: ${signature}`);
+    
+    while (retries > 0) {
+        try {
+            console.log(`Attempting to fetch transaction data (${4-retries}/3)`);
+            const response = await fetch(SOLANA_RPC, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    jsonrpc: "2.0",
+                    id: 1,
+                    method: "getTransaction",
+                    params: [signature, { 
+                        "encoding": "jsonParsed", 
+                        "maxSupportedTransactionVersion": 0, 
+                        "commitment": "finalized" 
+                    }]
+                })
+            });
+            const transactionData = await response.json();
+            console.log('Transaction data received:', {
+                status: transactionData.result ? 'success' : 'no result',
+                error: transactionData.error,
+                timestamp: new Date().toISOString()
+            });
+
+            if (!transactionData.result) {
+                console.log('No result received, waiting 30 seconds before next attempt...');
+                await new Promise(resolve => setTimeout(resolve, 30000));
+                continue;
+            }
+
+            console.log('Transaction result data:', JSON.stringify(transactionData.result, null, 2));
+
+            if (transactionData.result) {
+                const burnData = parseBurnTransactionData(transactionData.result);
+
+                await db.run(`
+                    INSERT INTO burns (signature, burner, amount, memo, token, timestamp, memo_checked)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(signature) DO UPDATE SET
+                        burner = excluded.burner,
+                        amount = excluded.amount,
+                        memo = excluded.memo,
+                        token = excluded.token,
+                        timestamp = excluded.timestamp,
+                        memo_checked = excluded.memo_checked
+                `, [
+                    burnData.signature,
+                    burnData.burner,
+                    burnData.amount,
+                    burnData.memo,
+                    burnData.token,
+                    burnData.timestamp,
+                    'Y'
+                ]);
+                console.log('Successfully updated database with burn data');
+
+                await memoCache.invalidateCache(db);
+                console.log('Cache invalidated successfully');
+                break;
+            }
+        } catch (error) {
+            retries--;
+            if (retries === 0) {
+                console.error('Failed to process transaction details:', error);
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 60000));
+        }
+    }
+}
+
 function isValidBurnTransaction(transaction) {
-    // validate if it's a burn transaction we care about
-    // check programID, instruction, etc.
-    return true; // return true based on actual logic
+    return true;
 }
 
-function parseMemoFromTransaction(transaction) {
-    // parse memo data from transaction
-    // return parsed memo object
-}
+function parseBurnTransactionData(transaction) {
+    try {
+        console.log('Starting to parse transaction data...');
 
-function parseBurnAmountFromTransaction(transaction) {
-    // parse burn amount from transaction
-    // return parsed amount
+        // Log the raw instructions first
+        console.log('Raw transaction:', JSON.stringify(transaction.transaction, null, 2));
+        
+        // Log the structure of instructions
+        console.log('Instructions overview:', transaction.transaction.message.instructions.map(inst => ({
+            program: inst.program,
+            programId: inst.programId,
+            type: inst.parsed?.type
+        })));
+
+        //Find the burn instruction
+        const burnInstruction = transaction.transaction.message.instructions.find(
+            instruction => instruction.parsed?.type === 'burn' || instruction.parsed?.type === 'burnChecked'
+        );
+
+        if (!burnInstruction) {
+            throw new Error('No burn instruction found in transaction');
+        }
+
+        // Parse burn data
+        const burnAmount = burnInstruction.parsed.info.amount;
+        const burner = burnInstruction.parsed.info.authority;
+        const token = burnInstruction.parsed.info.mint;
+        const timestamp = transaction.blockTime;
+        const signature = transaction.transaction.signatures[0];
+
+        // Find the memo instruction
+        const memoInstruction = transaction.transaction.message.instructions.find(
+            instruction => instruction.program === 'spl-memo'
+        );
+
+        if (!memoInstruction) {
+            throw new Error('No memo instruction found in transaction');
+        }
+
+        // Parse memo data
+        const memo = memoInstruction.parsed;
+
+        return {
+            signature: signature,
+            amount: burnAmount,
+            burner: burner,
+            memo: memo,
+            token: token,
+            timestamp: timestamp,
+        };
+    } catch (error) {
+        console.error('Error parsing transaction data:', error);
+        throw error;
+    }
 }
 
 app.listen(port, () => {
