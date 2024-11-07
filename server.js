@@ -71,7 +71,6 @@ app.post('/api/solana-rpc', async (req, res) => {
                 body: req.body
             });
             const statusData = await response.json();
-            console.log('Solana RPC response:', JSON.stringify(statusData, null, 2));
 
             // 3. If confirmed/finalized, trigger background processing and return immediately
             if (statusData.result?.value?.[0]?.confirmationStatus === 'confirmed' ||
@@ -79,8 +78,6 @@ app.post('/api/solana-rpc', async (req, res) => {
 
                  // Wait 15 seconds
                  await new Promise(resolve => setTimeout(resolve, 15000));
-
-                console.log('Triggering background processing for signature:', signature);
                 
                 // Trigger background processing without awaiting
                 processTransactionDetails(signature, db).catch(err => {
@@ -277,7 +274,6 @@ async function initializeDatabase() {
 // Separate async function for background processing
 async function processTransactionDetails(signature, db) {
     let retries = 3;
-    console.log(`Starting to process transaction details for signature: ${signature}`);
     
     while (retries > 0) {
         try {
@@ -308,8 +304,6 @@ async function processTransactionDetails(signature, db) {
                 await new Promise(resolve => setTimeout(resolve, 30000));
                 continue;
             }
-
-            console.log('Transaction result data:', JSON.stringify(transactionData.result, null, 2));
 
             if (transactionData.result) {
                 const burnData = parseBurnTransactionData(transactionData.result);
@@ -357,16 +351,6 @@ function isValidBurnTransaction(transaction) {
 function parseBurnTransactionData(transaction) {
     try {
         console.log('Starting to parse transaction data...');
-
-        // Log the raw instructions first
-        console.log('Raw transaction:', JSON.stringify(transaction.transaction, null, 2));
-        
-        // Log the structure of instructions
-        console.log('Instructions overview:', transaction.transaction.message.instructions.map(inst => ({
-            program: inst.program,
-            programId: inst.programId,
-            type: inst.parsed?.type
-        })));
 
         //Find the burn instruction
         const burnInstruction = transaction.transaction.message.instructions.find(
