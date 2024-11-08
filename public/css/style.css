@@ -118,14 +118,15 @@ header {
     margin-bottom: 1rem;
     overflow: hidden;
     transition: transform 0.2s ease;
-    /* max-width: 400px; */
     margin: 0 auto;
+    padding: 2rem;
 }
 
 .memorial-card img {
     width: 100%;
     aspect-ratio: 1 / 1;
     object-fit: cover;
+    border-radius: 8px;
 }
 
 .memorial-card:hover {
@@ -225,16 +226,3 @@ header {
 .memorial-card[data-rank="10"] {
     background: linear-gradient(135deg, #E74C3C, #C0392B);
 }
-
-/* .memorial-card[data-rank="1"] .memorial-content,
-.memorial-card[data-rank="2"] .memorial-content,
-.memorial-card[data-rank="3"] .memorial-content,
-.memorial-card[data-rank="4"] .memorial-content,
-.memorial-card[data-rank="5"] .memorial-content,
-.memorial-card[data-rank="6"] .memorial-content,
-.memorial-card[data-rank="7"] .memorial-content,
-.memorial-card[data-rank="8"] .memorial-content,
-.memorial-card[data-rank="9"] .memorial-content,
-.memorial-card[data-rank="10"] .memorial-content {
-    color: #2C3E50; 
-} */
