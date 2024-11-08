@@ -5,11 +5,11 @@ export class MemorialCard {
 
     async initializeUI() {
         const memorialData = {
-            "title":"US 2024 Election - 2 days left",
-            "image":"https://i.imgur.com/ajfDSQJ.png",
-            "content":"Close Race Between Trump and Harris",
-            "author":"test_dude",
-            "amount": "Burned 89.77 solXEN"
+            "title":"Bitcoin $76,000 after US Election 2024",
+            "image":"https://i.imgur.com/SEW4Agl.png",
+            "content":"No one can stop it.",
+            "author":"solXEN",
+            "amount": "Burned 100 solXEN"
         }
 
         const container = document.getElementById('memorial-card');
