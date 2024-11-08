@@ -182,3 +182,59 @@ header {
     flex-direction: column;
     gap: 1rem;
 }
+
+.memorial-card[data-rank="1"] {
+    background: linear-gradient(135deg, #FFD700, #FDB931); 
+    border: 1px solid #FFD700;
+}
+
+.memorial-card[data-rank="2"] {
+    background: linear-gradient(135deg, #C0C0C0, #E6E8E6);
+    border: 1px solid #C0C0C0;
+}
+
+.memorial-card[data-rank="3"] {
+    background: linear-gradient(135deg, #CD7F32, #B87333); 
+    border: 1px solid #CD7F32;
+}
+
+.memorial-card[data-rank="4"] {
+    background: linear-gradient(135deg, #FF6B6B, #FF8E8E); 
+}
+
+.memorial-card[data-rank="5"] {
+    background: linear-gradient(135deg, #4ECDC4, #45B7AF); 
+}
+
+.memorial-card[data-rank="6"] {
+    background: linear-gradient(135deg, #96C3EB, #7FB2E5); 
+}
+
+.memorial-card[data-rank="7"] {
+    background: linear-gradient(135deg, #9B59B6, #8E44AD); 
+}
+
+.memorial-card[data-rank="8"] {
+    background: linear-gradient(135deg, #2ECC71, #27AE60); 
+}
+
+.memorial-card[data-rank="9"] {
+    background: linear-gradient(135deg, #F1C40F, #F39C12); 
+}
+
+.memorial-card[data-rank="10"] {
+    background: linear-gradient(135deg, #E74C3C, #C0392B);
+}
+
+/* .memorial-card[data-rank="1"] .memorial-content,
+.memorial-card[data-rank="2"] .memorial-content,
+.memorial-card[data-rank="3"] .memorial-content,
+.memorial-card[data-rank="4"] .memorial-content,
+.memorial-card[data-rank="5"] .memorial-content,
+.memorial-card[data-rank="6"] .memorial-content,
+.memorial-card[data-rank="7"] .memorial-content,
+.memorial-card[data-rank="8"] .memorial-content,
+.memorial-card[data-rank="9"] .memorial-content,
+.memorial-card[data-rank="10"] .memorial-content {
+    color: #2C3E50; 
+} */

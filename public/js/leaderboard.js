@@ -83,6 +83,10 @@ export class Leaderboard {
         const div = document.createElement('div');
         div.className = 'memorial-card';
 
+        if (isTopBurn) {
+            div.setAttribute('data-rank', rank);
+        }
+
         const DEFAULT_IMAGE = '../img/solxen-logo.png';
 
         let memoData = {
