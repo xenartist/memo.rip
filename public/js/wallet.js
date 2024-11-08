@@ -14,48 +14,133 @@ export class WalletManager {
             return;
         }
 
+        // Create wrapper div for button and dropdown
+        const wrapper = document.createElement('div');
+        wrapper.className = 'wallet-wrapper relative';
+
+
         const button = document.createElement('button');
         button.textContent = 'Connect Wallet';
         button.className = 'wallet-button';
-        button.onclick = () => this.handleWalletClick();
-        container.appendChild(button);
+        button.addEventListener('click', (e) => this.handleWalletClick(e));
+        
+        // Create dropdown
+        const dropdown = document.createElement('div');
+        dropdown.className = 'wallet-dropdown hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5';
+        
+        wrapper.appendChild(button);
+        wrapper.appendChild(dropdown);
+        container.appendChild(wrapper);
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!wrapper.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
     }
 
-    async handleWalletClick() {
+    async handleWalletClick(event) {
+        event.stopPropagation();
+        
         if (this.walletState.connected) {
             await this.disconnectWallet();
         } else {
-            await this.connectWallet();
+            const dropdown = document.querySelector('.wallet-dropdown');
+            const availableWallets = this.detectAvailableWallets();
+            
+            // Update dropdown content
+            dropdown.innerHTML = '';
+            
+            if (availableWallets.length === 0) {
+                const message = document.createElement('div');
+                message.className = 'px-4 py-2 text-sm text-gray-700';
+                message.textContent = 'No wallets found. Please install Phantom, Solflare, or Backpack.';
+                dropdown.appendChild(message);
+            } else {
+                availableWallets.forEach(wallet => {
+                    const item = document.createElement('div');
+                    item.className = 'wallet-option px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center';
+                    
+                    // Add wallet icon if available
+                    const icon = document.createElement('img');
+                    icon.src = this.getWalletIcon(wallet.name);
+                    icon.className = 'w-5 h-5 mr-2';
+                    item.appendChild(icon);
+                    
+                    // Add wallet name
+                    const name = document.createElement('span');
+                    name.textContent = wallet.name;
+                    item.appendChild(name);
+                    
+                    item.onclick = () => this.connectToWallet(wallet.instance);
+                    dropdown.appendChild(item);
+                });
+            }
+            
+            // Toggle dropdown visibility
+            dropdown.classList.toggle('hidden');
         }
     }
 
-    async connectWallet() {
-        try {
-            const wallet = this.detectWallet();
-            
-            if (!wallet) {
-                const message = 'No Solana wallet found. Please install Phantom (https://phantom.app) or Solflare (https://solflare.com) wallet.';
-                console.log(message);
-                throw new Error(message);
-            }
+    detectAvailableWallets() {
+        const wallets = [];
+        
+        if (window.phantom?.solana?.isPhantom) {
+            wallets.push({ name: 'Phantom', instance: window.phantom.solana });
+        }
+        
+        if (window.solflare?.isSolflare) {
+            wallets.push({ name: 'Solflare', instance: window.solflare });
+        }
+        
+        if (window.backpack?.isBackpack) {
+            wallets.push({ name: 'Backpack', instance: window.backpack });
+        }
 
+        console.log('Available wallets:', wallets.map(w => w.name));
+        return wallets;
+    }
+
+    getWalletIcon(walletName) {
+        // Return appropriate icon URL for each wallet
+        switch (walletName.toLowerCase()) {
+            case 'phantom':
+                return '../img/phantom-favicon.ico';
+            case 'solflare':
+                return 'https://solflare.com/favicon.ico';
+            case 'backpack':
+                return 'https://www.backpack.app/favicon.ico';
+            default:
+                return 'default-wallet-icon.png';
+        }
+    }
+
+    async connectToWallet(wallet) {
+        try {
             const response = await wallet.connect();
-            
             const publicKey = response.publicKey || wallet.publicKey;
             
             if (!publicKey) {
                 throw new Error('Failed to get wallet public key');
             }
 
+            this.wallet = wallet; // Store the connected wallet instance
             this.walletState.connected = true;
             this.walletState.address = publicKey.toString();
             
             this.updateButtonState();
             
-            console.log('Wallet connected:', this.walletState.address);
+            // Hide dropdown after connection
+            document.querySelector('.wallet-dropdown').classList.add('hidden');
+            
+            console.log('Connected to wallet:', {
+                name: wallet.isSolflare ? 'Solflare' : wallet.isPhantom ? 'Phantom' : 'Backpack',
+                address: this.walletState.address
+            });
             
         } catch (error) {
-            console.error('Error connecting wallet:', error);
+            console.error('Error connecting to wallet:', error);
             alert(error.message);
         }
     }
@@ -90,6 +175,11 @@ export class WalletManager {
         // Solflare wallet
         if (window.solflare?.isSolflare) {
             return window.solflare;
+        }
+
+        // Backpack wallet
+        if (window.backpack?.isBackpack) {
+            return window.backpack;
         }
 
         // general solana wallet
