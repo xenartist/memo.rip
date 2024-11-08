@@ -163,29 +163,6 @@ export class BurnDialog {
             await new Promise(resolve => setTimeout(resolve, 10000));
             console.log('Starting status check...');
 
-            // Wait for confirmation
-            // const checkSignatureStatus = async (signature, maxAttempts = 3) => {
-            //     let attempts = 0;
-            //     while (attempts < maxAttempts) {
-            //         try {
-            //             const status = await this.connection.getSignatureStatus(signature);
-            //             console.log('Status check attempt', attempts + 1, status);
-                        
-            //             if (status?.value?.confirmationStatus === 'confirmed' || 
-            //                 status?.value?.confirmationStatus === 'finalized') {
-            //                 return status;
-            //             }
-                        
-            //             await new Promise(resolve => setTimeout(resolve, 10000));// wait 10 seconds
-            //             attempts++;
-            //         } catch (error) {
-            //             console.error('Error checking status:', error);
-            //             throw error;
-            //         }
-            //     }
-            //     throw new Error('Transaction confirmation timeout');
-            // };
-
             const status = await this.connection.getSignatureStatus(signature);
             console.log('Transaction status:', status);
 
