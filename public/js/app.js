@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const stats = new BurnStats();
     const wallet = new WalletManager();
     const leaderboard = new Leaderboard();
-    const burnDialog = new BurnDialog(wallet);
+    const burnDialog = new BurnDialog(wallet, leaderboard);
     stats.fetchStats();
     setInterval(() => stats.fetchStats(), 60000);
 });

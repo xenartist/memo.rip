@@ -1,7 +1,7 @@
 import { WalletManager } from './wallet.js';
 
 export class BurnDialog {
-    constructor(walletManager) {
+    constructor(walletManager, leaderboard) {
         const { PublicKey, Connection } = solanaWeb3;
 
         this.connection = new Connection(
@@ -16,6 +16,7 @@ export class BurnDialog {
         this.TOKEN_DECIMALS = 6;
 
         this.walletManager = walletManager;
+        this.leaderboard = leaderboard;
 
         this.initializeUI();
     }
@@ -166,12 +167,33 @@ export class BurnDialog {
             const status = await this.connection.getSignatureStatus(signature);
             console.log('Transaction status:', status);
 
-            alert(`Successfully burned ${formData.amount} solXEN!\nTransaction signature: ${signature}`);
-            this.hideDialog();
+            if (status && !status.err) {
+                alert(`Successfully burned ${formData.amount} solXEN!\nTransaction signature: ${signature}`);
+                this.hideDialog();
+    
+                await new Promise(resolve => setTimeout(resolve, 5000));
+    
+                await this.refreshLeaderboards();
+            }
 
         } catch (error) {
             console.error('Burn failed:', error);
             alert(`Burn failed: ${error.message}`);
+        }
+    }
+
+    async refreshLeaderboards() {
+        try {
+            if (this.leaderboard) {
+                const [topBurns, latestBurns] = await Promise.all([
+                    this.leaderboard.fetchTopBurns(),
+                    this.leaderboard.fetchLatestBurns()
+                ]);
+                this.leaderboard.renderTopBurns(topBurns);
+                this.leaderboard.renderLatestBurns(latestBurns);
+            }
+        } catch (error) {
+            console.error('Failed to refresh leaderboards:', error);
         }
     }
 
