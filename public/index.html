@@ -21,12 +21,15 @@
         });
     </script>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="min-h-screen" style="background-color: #e6e6dd;">
     <div class="container mx-auto px-4">
         <!-- top navigation bar -->
-        <header class="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
+        <header class="fixed top-0 left-0 right-0 bg-white shadow-sm z-50" style="background-color: #e6e6dd;">
             <div class="container mx-auto px-4 h-16 flex items-center justify-between">
-                <h1 class="text-2xl font-bold text-gray-900">memo.rip - for everlasting memories on solana</h1>
+                <div class="flex items-center gap-3">
+                    <img src="img/memo-rip-logo.png" alt="memo.rip logo" class="h-16 w-16">
+                    <h1 class="text-2xl font-bold text-gray-900">memo.rip - for everlasting memories on solana</h1>
+                </div>
                 <div id="wallet-container"></div>
             </div>
         </header>
@@ -40,7 +43,7 @@
                 </div>
 
                 <div class="rounded-lg border bg-card text-card-foreground shadow-sm bg-white p-6">
-                    <h2 class="text-xl font-semibold mb-4">Burn Overview</h2>
+                    <h2 class="text-xl font-semibold mb-4">solXEN Burn Overview</h2>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="p-4 rounded-lg bg-gray-50">
                             <label class="text-sm font-medium text-gray-500">Total Burn</label>

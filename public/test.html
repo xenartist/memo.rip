@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monochrome Pixel Art Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        #preview {
+            border: 1px solid #ccc;
+            padding: 10px;
+            min-height: 300px;
+            min-width: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+        }
+        
+        #preview svg {
+            width: 300px;
+            height: 300px;
+            background: white;
+            border: 1px solid #ddd;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .info {
+            margin-top: 10px;
+            color: #666;
+        }
+
+        select, input {
+            padding: 5px;
+            margin: 5px;
+        }
+
+        button {
+            padding: 5px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Monochrome Pixel Art Generator</h1>
+        
+        <div class="controls">
+            <input type="file" id="imageInput" accept="image/*">
+            <select id="sizeSelect">
+                <option value="16">16x16</option>
+                <option value="24">24x24</option>
+                <option value="32">32x32</option>
+            </select>
+            <select id="thresholdSelect">
+                <option value="128">Normal</option>
+                <option value="160">Darker</option>
+                <option value="96">Lighter</option>
+            </select>
+            <button id="downloadBtn" disabled>Download SVG</button>
+        </div>
+        
+        <div id="preview"></div>
+        <div id="info" class="info"></div>
+    </div>
+
+    <script>
+        class MonochromePixelArtGenerator {
+            constructor(options = {}) {
+                this.size = options.size || 16;
+                this.threshold = options.threshold || 128;
+                this.maxBytes = 500;
+            }
+
+            async generatePixelArt(imageFile) {
+                try {
+                    const pixels = await this.getPixelData(imageFile);
+                    const binaryPixels = this.convertToBinary(pixels);
+                    const svg = this.createSVG(binaryPixels);
+                    return svg;
+                } catch (error) {
+                    console.error('Pixel art generation failed:', error);
+                    throw error;
+                }
+            }
+
+            async getPixelData(imageFile) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = this.size;
+                        canvas.height = this.size;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.imageSmoothingEnabled = false;
+                        ctx.drawImage(img, 0, 0, this.size, this.size);
+                        
+                        const imageData = ctx.getImageData(0, 0, this.size, this.size);
+                        resolve(imageData.data);
+                    };
+                    img.onerror = reject;
+                    img.src = URL.createObjectURL(imageFile);
+                });
+            }
+
+            convertToBinary(pixels) {
+                const binaryPixels = [];
+                for (let i = 0; i < pixels.length; i += 4) {
+                    const r = pixels[i];
+                    const g = pixels[i + 1];
+                    const b = pixels[i + 2];
+                    const a = pixels[i + 3];
+                    
+                    const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+                    binaryPixels.push(a > 128 && brightness < this.threshold);
+                }
+                return binaryPixels;
+            }
+
+            createSVG(pixels) {
+                let path = '';
+                pixels.forEach((isBlack, i) => {
+                    if (isBlack) {
+                        const x = i % this.size;
+                        const y = Math.floor(i / this.size);
+                        path += `M${x},${y}h1v1h-1z`;
+                    }
+                });
+
+                const svg = `<svg viewBox="0 0 ${this.size} ${this.size}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"><path d="${path}" fill="black"/></svg>`;
+                return this.optimizeSVG(svg);
+            }
+
+            optimizeSVG(svg) {
+                return svg.replace(/\s+/g, ' ').trim();
+            }
+        }
+
+        async function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const size = parseInt(document.getElementById('sizeSelect').value);
+            const threshold = parseInt(document.getElementById('thresholdSelect').value);
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            const generator = new MonochromePixelArtGenerator({
+                size: size,
+                threshold: threshold
+            });
+
+            try {
+                const svg = await generator.generatePixelArt(file);
+                const svgSize = new Blob([svg]).size;
+                
+                document.getElementById('preview').innerHTML = svg;
+                document.getElementById('info').textContent = 
+                    `SVG size: ${svgSize} bytes (${(svgSize > 500 ? 'Exceeds' : 'Within')} 500 byte limit)`;
+                
+                downloadBtn.disabled = false;
+            } catch (error) {
+                console.error('Failed to generate pixel art:', error);
+                document.getElementById('info').textContent = 'Error generating pixel art';
+
+                downloadBtn.disabled = true;
+            }
+        }
+
+        document.getElementById('imageInput').addEventListener('change', handleImageUpload);
+        document.getElementById('sizeSelect').addEventListener('change', () => {
+            const input = document.getElementById('imageInput');
+            if (input.files[0]) handleImageUpload({ target: input });
+        });
+        document.getElementById('thresholdSelect').addEventListener('change', () => {
+            const input = document.getElementById('imageInput');
+            if (input.files[0]) handleImageUpload({ target: input });
+        });
+        document.getElementById('downloadBtn').addEventListener('click', downloadSVG);
+
+        function downloadSVG() {
+            const svgContent = document.querySelector('#preview svg');
+            if (!svgContent) return;
+
+            const svgBlob = new Blob([svgContent.outerHTML], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(svgBlob);
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = 'pixel-art.svg';
+            
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
