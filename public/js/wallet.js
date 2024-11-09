@@ -42,15 +42,32 @@ export class WalletManager {
 
     async handleWalletClick(event) {
         event.stopPropagation();
+        const dropdown = document.querySelector('.wallet-dropdown');
+        
+        dropdown.innerHTML = '';
         
         if (this.walletState.connected) {
-            await this.disconnectWallet();
-        } else {
-            const dropdown = document.querySelector('.wallet-dropdown');
-            const availableWallets = this.detectAvailableWallets();
+            const logoutItem = document.createElement('div');
+            logoutItem.className = 'wallet-option px-4 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer flex items-center';
             
-            // Update dropdown content
-            dropdown.innerHTML = '';
+            const icon = document.createElement('svg');
+            icon.className = 'w-5 h-5 mr-2';
+            icon.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            `;
+            logoutItem.appendChild(icon);
+            
+            const text = document.createElement('span');
+            text.textContent = 'Logout';
+            logoutItem.appendChild(text);
+            
+            logoutItem.onclick = () => this.disconnectWallet();
+            
+            dropdown.appendChild(logoutItem);
+        } else {
+            const availableWallets = this.detectAvailableWallets();
             
             if (availableWallets.length === 0) {
                 const message = document.createElement('div');
@@ -77,10 +94,10 @@ export class WalletManager {
                     dropdown.appendChild(item);
                 });
             }
-            
-            // Toggle dropdown visibility
-            dropdown.classList.toggle('hidden');
         }
+        
+        // Toggle dropdown visibility
+        dropdown.classList.toggle('hidden');
     }
 
     detectAvailableWallets() {
@@ -155,6 +172,9 @@ export class WalletManager {
                 this.walletState.address = null;
                 
                 this.updateButtonState();
+                const dropdown = document.querySelector('.wallet-dropdown');
+                dropdown.classList.add('hidden');
+                
                 console.log('Wallet disconnected');
             }
         } catch (error) {
