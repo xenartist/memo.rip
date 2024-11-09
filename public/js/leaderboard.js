@@ -85,6 +85,11 @@ export class Leaderboard {
 
         if (isTopBurn) {
             div.setAttribute('data-rank', rank);
+
+            // add pin icon
+            const pin = document.createElement('div');
+            pin.className = 'memorial-pin';
+            div.appendChild(pin);
         }
 
         const DEFAULT_IMAGE = '../img/solxen-logo.png';
@@ -114,6 +119,7 @@ export class Leaderboard {
         }
 
         const content = `
+            ${isTopBurn ? '<div class="memorial-pin-shadow"></div>' : ''}
             <img src="${memoData.image}" 
                  alt="${memoData.title}"
                  onerror="this.onerror=null; this.src='${DEFAULT_IMAGE}';">
@@ -127,7 +133,7 @@ export class Leaderboard {
             </div>
         `;
 
-        div.innerHTML = content;
+        div.insertAdjacentHTML('beforeend', content);
         return div;
     }
 

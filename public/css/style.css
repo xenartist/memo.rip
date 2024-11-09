@@ -112,6 +112,7 @@ header {
 }
 
 .memorial-card {
+    position: relative;
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -132,6 +133,30 @@ header {
 .memorial-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.memorial-pin {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 16px;
+    background: #e74c3c;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+}
+
+.memorial-pin-shadow {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 8px;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 70%);
+    z-index: 1;
 }
 
 .memorial-content {
@@ -184,6 +209,15 @@ header {
     gap: 1rem;
 }
 
+.memorial-card[data-rank] {
+    transform-origin: center top;
+    transition: transform 0.3s ease;
+}
+
+.memorial-card[data-rank]:hover {
+    transform: rotate(-1deg);
+}
+
 .memorial-card[data-rank="1"] {
     background: linear-gradient(135deg, #FFD700, #FDB931); 
     border: 1px solid #FFD700;
@@ -195,34 +229,34 @@ header {
 }
 
 .memorial-card[data-rank="3"] {
-    background: linear-gradient(135deg, #CD7F32, #B87333); 
+    background: linear-gradient(135deg, #fcb46b, #fdb674); 
     border: 1px solid #CD7F32;
 }
 
 .memorial-card[data-rank="4"] {
-    background: linear-gradient(135deg, #FF6B6B, #FF8E8E); 
+    background: linear-gradient(135deg, #fba0a0, #fba0a0); 
 }
 
 .memorial-card[data-rank="5"] {
-    background: linear-gradient(135deg, #4ECDC4, #45B7AF); 
+    background: linear-gradient(135deg, #b1fffa, #b1fffa); 
 }
 
 .memorial-card[data-rank="6"] {
-    background: linear-gradient(135deg, #96C3EB, #7FB2E5); 
+    background: linear-gradient(135deg, #97d6ff, #97d6ff); 
 }
 
 .memorial-card[data-rank="7"] {
-    background: linear-gradient(135deg, #9B59B6, #8E44AD); 
+    background: linear-gradient(135deg, #f6c2ff, #f6c2ff); 
 }
 
 .memorial-card[data-rank="8"] {
-    background: linear-gradient(135deg, #2ECC71, #27AE60); 
+    background: linear-gradient(135deg, #adffd1, #adffd1); 
 }
 
 .memorial-card[data-rank="9"] {
-    background: linear-gradient(135deg, #F1C40F, #F39C12); 
+    background: linear-gradient(135deg, #ffe49b, #ffe49b); 
 }
 
 .memorial-card[data-rank="10"] {
-    background: linear-gradient(135deg, #E74C3C, #C0392B);
+    background: linear-gradient(135deg, #ffff86, #ffff86);
 }
