@@ -1,5 +1,35 @@
 export class Leaderboard {
     constructor() {
+        this.shuffledImages = [];
+        this.currentIndex = 0;
+
+        window.getRandomDefaultImage = () => {
+            const DEFAULT_IMAGES = [
+                '../img/memo-rip-banana.png',
+                '../img/memo-rip-carrot.png',
+                '../img/memo-rip-lemon.png',
+                '../img/memo-rip-logo.png',
+                '../img/memo-rip-maze.png',
+                '../img/memo-rip-pear.png',
+                '../img/memo-rip-pomegranate.png',
+                '../img/memo-rip-potato.png',
+                '../img/memo-rip-starfruit.png',
+                '../img/solxen-logo.png', 
+            ];
+
+            if (this.currentIndex === 0 || this.currentIndex >= this.shuffledImages.length) {
+                this.shuffledImages = [...DEFAULT_IMAGES];
+                // Fisher-Yates shuffle
+                for (let i = this.shuffledImages.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [this.shuffledImages[i], this.shuffledImages[j]] = 
+                    [this.shuffledImages[j], this.shuffledImages[i]];
+                }
+                this.currentIndex = 0;
+            }
+            
+            return this.shuffledImages[this.currentIndex++];
+        };
         this.init();
     }
 
@@ -79,6 +109,15 @@ export class Leaderboard {
         });
     }
 
+    isValidImageUrl(url) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = url;
+        });
+    }
+
     createBurnNote({ rank, amount, address, timestamp, memo, isTopBurn, isLatest }) {
         const div = document.createElement('div');
         div.className = 'memorial-card';
@@ -92,11 +131,24 @@ export class Leaderboard {
             div.appendChild(pin);
         }
 
-        const DEFAULT_IMAGE = '../img/solxen-logo.png';
+        // const DEFAULT_IMAGES = [
+        //     '../img/memo-rip-logo.png',
+        //     '../img/solxen-logo.png',     
+        //     '../img/memo-rip-banana.png',
+        //     '../img/memo-rip-carrot.png',
+        //     '../img/memo-rip-lemon.png',
+        //     '../img/memo-rip-maze.png',
+        //     '../img/memo-rip-pear.png'  
+        // ];
+
+        // const getRandomDefaultImage = () => {
+        //     const randomIndex = Math.floor(Math.random() * DEFAULT_IMAGES.length);
+        //     return DEFAULT_IMAGES[randomIndex];
+        // };
 
         let memoData = {
             title: 'Everlasting Memory',
-            image: DEFAULT_IMAGE, 
+            image: '', 
             content: 'Burned by',
             author: this.formatAddress(address)
         };
@@ -122,7 +174,7 @@ export class Leaderboard {
             ${isTopBurn ? '<div class="memorial-pin-shadow"></div>' : ''}
             <img src="${memoData.image}" 
                  alt="${memoData.title}"
-                 onerror="this.onerror=null; this.src='${DEFAULT_IMAGE}';">
+                 onerror="this.onerror=null; this.src=getRandomDefaultImage();">
             <div class="memorial-content">
                 ${isTopBurn ? `<div class="memorial-rank">#${rank}</div>` : ''}
                 <div class="memorial-title">${memoData.title}</div>
