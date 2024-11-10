@@ -1,7 +1,7 @@
 import { WalletManager } from './wallet.js';
 
 export class BurnDialog {
-    constructor(walletManager, leaderboard) {
+    constructor(walletManager, leaderboard, stats) {
         const { PublicKey, Connection } = solanaWeb3;
 
         this.connection = new Connection(
@@ -17,6 +17,7 @@ export class BurnDialog {
 
         this.walletManager = walletManager;
         this.leaderboard = leaderboard;
+        this.stats = stats;
 
         this.initializeUI();
     }
@@ -79,14 +80,44 @@ export class BurnDialog {
     }
 
     hideDialog() {
+        this.setLoading(false);
         this.dialog.classList.add('hidden');
         document.body.style.overflow = ''; 
+    }
+
+    setLoading(isLoading) {
+        const confirmBtn = document.getElementById('confirm-burn-btn');
+        const loadingSpinner = document.getElementById('burn-loading');
+        const cancelBtn = document.getElementById('cancel-burn');
+        const closeBtn = document.getElementById('close-dialog');
+        
+        if (isLoading) {
+            confirmBtn.disabled = true;
+            cancelBtn.disabled = true;
+            closeBtn.disabled = true;
+            loadingSpinner.classList.remove('hidden');
+            confirmBtn.querySelector('span').textContent = 'Processing...';
+            
+            this.dialog.classList.add('pointer-events-none');
+            confirmBtn.classList.add('opacity-75');
+        } else {
+            confirmBtn.disabled = false;
+            cancelBtn.disabled = false;
+            closeBtn.disabled = false;
+            loadingSpinner.classList.add('hidden');
+            confirmBtn.querySelector('span').textContent = 'Confirm Burn';
+            
+            this.dialog.classList.remove('pointer-events-none');
+            confirmBtn.classList.remove('opacity-75');
+        }
     }
 
     async handleSubmit(e) {
         e.preventDefault();
 
         try {
+            this.setLoading(true);
+
             const { Transaction, TransactionInstruction, SystemProgram, PublicKey } = solanaWeb3;
 
             // Get and validate form data
@@ -178,12 +209,17 @@ export class BurnDialog {
     
                 await new Promise(resolve => setTimeout(resolve, 5000));
     
-                await this.refreshLeaderboards();
+                await Promise.all([
+                    this.refreshLeaderboards(),
+                    this.refreshStats()
+                ]);
             }
 
         } catch (error) {
             console.error('Burn failed:', error);
             alert(`Burn failed: ${error.message}`);
+        } finally {
+            this.setLoading(false);
         }
     }
 
@@ -199,6 +235,16 @@ export class BurnDialog {
             }
         } catch (error) {
             console.error('Failed to refresh leaderboards:', error);
+        }
+    }
+
+    async refreshStats() {
+        try {
+            if (this.stats) {
+                await this.stats.fetchStats();
+            }
+        } catch (error) {
+            console.error('Failed to refresh stats:', error);
         }
     }
 

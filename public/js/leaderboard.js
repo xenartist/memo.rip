@@ -180,7 +180,7 @@ export class Leaderboard {
                 <div class="memorial-title">${memoData.title}</div>
                 <div class="memorial-text">${memoData.content}</div>
                 <div class="memorial-author">- ${memoData.author}</div>
-                <div class="memorial-amount">Burned ${this.formatAmount(amount)} solXEN</div>
+                <div class="memorial-amount">🔥 Burned ${this.formatAmount(amount)} solXEN</div>
                 <div class="memorial-time">${this.formatTimestamp(timestamp)}</div>
             </div>
         `;
