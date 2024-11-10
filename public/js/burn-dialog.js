@@ -69,6 +69,11 @@ export class BurnDialog {
     }
 
     showDialog() {
+        if (!this.walletManager.walletState.connected) {
+            alert('Please connect your wallet first');
+            return;
+        }
+    
         this.dialog.classList.remove('hidden');
         document.body.style.overflow = 'hidden'; 
     }
