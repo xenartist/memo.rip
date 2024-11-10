@@ -76,8 +76,8 @@ app.post('/api/solana-rpc', async (req, res) => {
             if (statusData.result?.value?.[0]?.confirmationStatus === 'confirmed' ||
                 statusData.result?.value?.[0]?.confirmationStatus === 'finalized') {
 
-                 // Wait 15 seconds
-                 await new Promise(resolve => setTimeout(resolve, 15000));
+                 // Wait 10 seconds
+                 await new Promise(resolve => setTimeout(resolve, 10000));
                 
                 // Trigger background processing without awaiting
                 processTransactionDetails(signature, db).catch(err => {
