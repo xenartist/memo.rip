@@ -255,6 +255,42 @@ export class BurnDialog {
         this.closeButton = document.getElementById('close-dialog');
         this.cancelButton = document.getElementById('cancel-burn');
 
+        // character counter element
+        this.charCounter = document.createElement('div');
+        this.charCounter.className = 'text-sm text-gray-10 mt-2';
+        this.form.appendChild(this.charCounter);
+
         this.initializeEventListeners();
+        this.initializeCharCounter();
+    }
+
+    initializeCharCounter() {
+        // Maximum length for memo instruction (548 bytes)
+        const MAX_MEMO_LENGTH = 548;
+
+        const BASE_JSON_LENGTH = 48;
+        
+        const updateCounter = () => {
+            const memoContent = JSON.stringify({
+                title: document.getElementById('memo-title').value,
+                image: document.getElementById('memo-image').value,
+                content: document.getElementById('memo-content').value,
+                author: document.getElementById('memo-author').value
+            });
+            
+            const currentLength = memoContent.length;
+            const remainingChars = MAX_MEMO_LENGTH - currentLength;
+            
+            this.charCounter.textContent = `Characters remaining: ${remainingChars}/${MAX_MEMO_LENGTH - BASE_JSON_LENGTH}`;
+            this.charCounter.style.color = remainingChars < 0 ? 'red' : 'inherit';
+        };
+    
+        // Add input event listeners to all memo fields
+        ['memo-title', 'memo-image', 'memo-content', 'memo-author'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateCounter);
+        });
+    
+        // Initial counter update
+        updateCounter();
     }
 }
