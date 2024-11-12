@@ -1,7 +1,7 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const rpcConfig = require('./config/rpc');
+const fs = require('fs').promises;
 
 const app = express();
 const port = 3000;
@@ -11,6 +11,25 @@ const TOTAL_SUPPLY = 58401288517;
 // database
 let db;
 let currentRpcIndex = 0;
+let rpcEndpoints = [];
+
+async function loadRpcConfig() {
+    try {
+        const configPath = path.join(__dirname, 'config/rpc.json');
+        const configData = await fs.readFile(configPath, 'utf8');
+        const config = JSON.parse(configData);
+        rpcEndpoints = [...config.endpoints];
+        console.log('RPC endpoints loaded:', rpcEndpoints);
+    } catch (error) {
+        console.error('Failed to load RPC config:', error);
+    }
+}
+
+// load rpc config
+loadRpcConfig();
+
+// reload rpc config every 60 seconds
+setInterval(loadRpcConfig, 60000);
 
 // initialize database
 initializeDatabase();
@@ -118,8 +137,11 @@ app.get('/api/latest-burns', async (req, res) => {
 });
 
 function getNextRpcEndpoint() {
-    const endpoint = rpcConfig.endpoints[currentRpcIndex];
-    currentRpcIndex = (currentRpcIndex + 1) % rpcConfig.endpoints.length;
+    if (!rpcEndpoints.length) {
+        throw new Error('No RPC endpoints available');
+    }
+    const endpoint = rpcEndpoints[currentRpcIndex];
+    currentRpcIndex = (currentRpcIndex + 1) % rpcEndpoints.length;
     return endpoint;
 }
 
