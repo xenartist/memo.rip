@@ -5,9 +5,7 @@ const fs = require('fs').promises;
 
 const app = express();
 const port = 3000;
-// Solana RPC endpoint
-const SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
-const TOTAL_SUPPLY = 58401288517;
+const TOTAL_SUPPLY = 58445764495;
 // database
 let db;
 let currentRpcIndex = 0;
@@ -28,8 +26,8 @@ async function loadRpcConfig() {
 // load rpc config
 loadRpcConfig();
 
-// reload rpc config every 60 seconds
-setInterval(loadRpcConfig, 60000);
+// reload rpc config every 5 minutes
+setInterval(loadRpcConfig, 300000);
 
 // initialize database
 initializeDatabase();
