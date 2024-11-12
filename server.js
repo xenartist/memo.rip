@@ -1,6 +1,7 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const rpcConfig = require('./config/rpc');
 
 const app = express();
 const port = 3000;
@@ -9,6 +10,7 @@ const SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
 const TOTAL_SUPPLY = 58401288517;
 // database
 let db;
+let currentRpcIndex = 0;
 
 // initialize database
 initializeDatabase();
@@ -19,20 +21,12 @@ app.use('/api/solana-rpc', express.raw({ type: 'application/json' }));
 
 app.get('/api/test-solana', async (req, res) => {
     try {
-        const response = await fetch(SOLANA_RPC, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                jsonrpc: "2.0",
-                id: 1,
-                method: "getVersion",
-                params: []
-            })
+        const data = await fetchRPC({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "getVersion",
+            params: []
         });
-
-        const data = await response.json();
         res.json(data);
     } catch (error) {
         console.error('Test RPC Error:', error);
@@ -65,12 +59,7 @@ app.post('/api/solana-rpc', async (req, res) => {
             }
 
             // 2. Forward getSignatureStatuses request to Solana
-            const response = await fetch(SOLANA_RPC, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: req.body
-            });
-            const statusData = await response.json();
+            const statusData = await fetchRPC(req.body);
 
             // 3. If confirmed/finalized, trigger background processing and return immediately
             if (statusData.result?.value?.[0]?.confirmationStatus === 'confirmed' ||
@@ -89,12 +78,7 @@ app.post('/api/solana-rpc', async (req, res) => {
             return res.json(statusData);
         } else {
             // other RPC requests
-            const response = await fetch(SOLANA_RPC, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: req.body
-            });
-            const data = await response.json();
+            const data = await fetchRPC(req.body);
             res.json(data);
         }
     } catch (error) {
@@ -132,6 +116,27 @@ app.get('/api/latest-burns', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+function getNextRpcEndpoint() {
+    const endpoint = rpcConfig.endpoints[currentRpcIndex];
+    currentRpcIndex = (currentRpcIndex + 1) % rpcConfig.endpoints.length;
+    return endpoint;
+}
+
+async function fetchRPC(body) {
+    const endpoint = getNextRpcEndpoint();
+    
+    const bodyStr = Buffer.isBuffer(body) ? body.toString() : body;
+    
+    const bodyData = typeof bodyStr === 'string' ? bodyStr : JSON.stringify(bodyStr);
+    
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: bodyData
+    });
+    return response.json();
+}
 
 class MemoCache {
     constructor() {
@@ -278,21 +283,16 @@ async function processTransactionDetails(signature, db) {
     while (retries > 0) {
         try {
             console.log(`Attempting to fetch transaction data (${4-retries}/3)`);
-            const response = await fetch(SOLANA_RPC, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    jsonrpc: "2.0",
-                    id: 1,
-                    method: "getTransaction",
-                    params: [signature, { 
-                        "encoding": "jsonParsed", 
-                        "maxSupportedTransactionVersion": 0, 
-                        "commitment": "finalized" 
-                    }]
-                })
+            const transactionData = await fetchRPC({
+                jsonrpc: "2.0",
+                id: 1,
+                method: "getTransaction",
+                params: [signature, { 
+                    "encoding": "jsonParsed", 
+                    "maxSupportedTransactionVersion": 0, 
+                    "commitment": "finalized" 
+                }]
             });
-            const transactionData = await response.json();
             console.log('Transaction data received:', {
                 status: transactionData.result ? 'success' : 'no result',
                 error: transactionData.error,
