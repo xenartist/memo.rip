@@ -196,8 +196,8 @@ export class BurnDialog {
             console.log('Transaction sent:', signature);
 
             // Wait for 10 seconds before checking status
-            // console.log('Waiting 10 seconds before checking status...');
-            // await new Promise(resolve => setTimeout(resolve, 5000));
+            console.log('Waiting 10 seconds before checking status...');
+            await new Promise(resolve => setTimeout(resolve, 10000));
             console.log('Starting status check...');
 
             const status = await this.connection.getSignatureStatus(signature);
@@ -207,7 +207,7 @@ export class BurnDialog {
                 alert(`Successfully burned ${formData.amount} solXEN!\nTransaction signature: ${signature}`);
                 this.hideDialog();
     
-                // await new Promise(resolve => setTimeout(resolve, 5000));
+                await new Promise(resolve => setTimeout(resolve, 5000));
     
                 await Promise.all([
                     this.refreshLeaderboards(),

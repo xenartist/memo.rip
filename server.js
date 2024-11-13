@@ -15,7 +15,15 @@ let rpcEndpoints = [];
 
 const logger = winston.createLogger({
     level: 'info',
-    format: winston.format.simple(),
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.printf(({ level, message, timestamp }) => {
+            const msg = typeof message === 'object' ? 
+                JSON.stringify(message) : 
+                message;
+            return `${timestamp} [${level}]: ${msg}`;
+        })
+    ),
     transports: [
         new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
         new winston.transports.Console()
@@ -28,9 +36,9 @@ async function loadRpcConfig() {
         const configData = await fs.readFile(configPath, 'utf8');
         const config = JSON.parse(configData);
         rpcEndpoints = [...config.endpoints];
-        logger.info('RPC endpoints loaded:', rpcEndpoints);
+        logger.info(`RPC endpoints loaded: ${rpcEndpoints}`);
     } catch (error) {
-        logger.error('Failed to load RPC config:', error);
+        logger.error(`Failed to load RPC config: ${error}`);
     }
 }
 
@@ -57,7 +65,7 @@ app.get('/api/test-solana', async (req, res) => {
         });
         res.json(data);
     } catch (error) {
-        logger.error('Test RPC Error:', error);
+        logger.error(`Test RPC Error: ${error}`);
         res.status(500).json({ 
             error: 'Test RPC request failed',
             message: error.message 
@@ -68,10 +76,10 @@ app.get('/api/test-solana', async (req, res) => {
 // RPC proxy route
 app.post('/api/solana-rpc', async (req, res) => {
     try {
-        logger.info('Received RPC request:', req.body.toString());
+        logger.info(`Received RPC request: ${req.body.toString()}`);
         // check if it's a getTransaction request
         if (JSON.parse(req.body.toString()).method === 'getSignatureStatuses') {
-            logger.info('getSignatureStatuses request received');
+            logger.info(`getSignatureStatuses request received`);
             const bodyData = JSON.parse(req.body.toString());
             const signature = bodyData.params[0][0];  // Get first signature from array
             
@@ -83,7 +91,7 @@ app.post('/api/solana-rpc', async (req, res) => {
                     ON CONFLICT(signature) DO NOTHING
                 `, [signature]);
             } catch (err) {
-                logger.error('Failed to save initial signature:', err);
+                logger.error(`Failed to save initial signature: ${err}`);
             }
 
             // 2. Forward getSignatureStatuses request to Solana
@@ -98,7 +106,7 @@ app.post('/api/solana-rpc', async (req, res) => {
                 
                 // Trigger background processing without awaiting
                 processTransactionDetails(signature, db).catch(err => {
-                    logger.error('Background processing failed:', err);
+                    logger.error(`Background processing failed: ${err}`);
                 });
             }
 
@@ -110,7 +118,7 @@ app.post('/api/solana-rpc', async (req, res) => {
             res.json(data);
         }
     } catch (error) {
-        logger.error('RPC proxy error:', error);
+        logger.error(`RPC proxy error: ${error}`);
         res.status(500).json({ error: error.message });
     }
 });
@@ -122,7 +130,7 @@ app.get('/api/burns', async (req, res) => {
         const burnPercentage = (totalBurn / TOTAL_SUPPLY) * 100;
         res.json({"totalBurn": totalBurn, "burnPercentage": burnPercentage});
     } catch (error) {
-        logger.error('Failed to fetch burn stats:', error);
+        logger.error(`Failed to fetch burn stats: ${error}`);
         res.status(500).json({ error: 'Failed to fetch data' });
     }
 });
