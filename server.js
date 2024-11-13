@@ -94,24 +94,42 @@ app.post('/api/solana-rpc', async (req, res) => {
                 logger.error(`Failed to save initial signature: ${err}`);
             }
 
-            // 2. Forward getSignatureStatuses request to Solana
-            const statusData = await fetchRPC(req.body);
-
-            // 3. If confirmed/finalized, trigger background processing and return immediately
-            if (statusData.result?.value?.[0]?.confirmationStatus === 'confirmed' ||
-                statusData.result?.value?.[0]?.confirmationStatus === 'finalized') {
-
-                 // Wait 10 seconds
-                 await new Promise(resolve => setTimeout(resolve, 10000));
+            // 2. Get signature status with retries
+            let retries = 3;
+            while (retries > 0) {
+                const statusData = await fetchRPC(bodyData);
                 
-                // Trigger background processing without awaiting
-                processTransactionDetails(signature, db).catch(err => {
-                    logger.error(`Background processing failed: ${err}`);
-                });
+                if (statusData.result?.value?.[0]?.confirmationStatus === 'confirmed' ||
+                    statusData.result?.value?.[0]?.confirmationStatus === 'finalized') {
+                    
+                    // Trigger background processing without awaiting
+                    processTransactionDetails(signature, db).catch(err => {
+                        logger.error(`Background processing failed: ${err}`);
+                    });
+                    
+                    return res.json(statusData);
+                }
+                
+                retries--;
+                if (retries > 0) {
+                    logger.info(`Waiting 30 seconds before retry ${3-retries}/3`);
+                    await new Promise(resolve => setTimeout(resolve, 30000));
+                }
             }
 
-            // 4. Return signature status to client immediately
-            return res.json(statusData);
+            // Delete unconfirmed signature from database
+            try {
+                await db.run('DELETE FROM burns WHERE signature = ?', [signature]);
+                logger.info(`Deleted unconfirmed signature from database: ${signature}`);
+            } catch (err) {
+                logger.error(`Failed to delete unconfirmed signature: ${err}`);
+            }
+            
+            // If we get here, transaction was not confirmed after all retries
+            return res.status(400).json({
+                error: 'Transaction confirmation timeout',
+                message: 'Transaction was not confirmed within the expected timeframe'
+            });
         } else {
             // other RPC requests
             const data = await fetchRPC(req.body);
@@ -339,8 +357,8 @@ async function processTransactionDetails(signature, db) {
             });
 
             if (!transactionData.result) {
-                console.log('No result received, waiting 30 seconds before next attempt...');
-                await new Promise(resolve => setTimeout(resolve, 30000));
+                console.log('No result received, waiting 10 seconds before next attempt...');
+                await new Promise(resolve => setTimeout(resolve, 10000));
                 continue;
             }
 
