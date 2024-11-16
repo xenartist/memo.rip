@@ -3,6 +3,8 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs').promises;
 const winston = require('winston');
+const DbChecker = require('./db-checker');
+const { fetchRPC, setRpcEndpoints } = require('./utils');
 
 const app = express();
 const args = process.argv.slice(2);
@@ -10,8 +12,8 @@ const port = args[0] || process.env.PORT || 3000;
 const TOTAL_SUPPLY = 58445764495;
 // database
 let db;
-let currentRpcIndex = 0;
-let rpcEndpoints = [];
+// let currentRpcIndex = 0;
+// let rpcEndpoints = [];
 
 const logger = winston.createLogger({
     level: 'info',
@@ -35,8 +37,8 @@ async function loadRpcConfig() {
         const configPath = path.join(__dirname, 'config/rpc.json');
         const configData = await fs.readFile(configPath, 'utf8');
         const config = JSON.parse(configData);
-        rpcEndpoints = [...config.endpoints];
-        logger.info(`RPC endpoints loaded: ${rpcEndpoints}`);
+        setRpcEndpoints(config.endpoints);
+        logger.info(`RPC endpoints loaded: ${config.endpoints}`);
     } catch (error) {
         logger.error(`Failed to load RPC config: ${error}`);
     }
@@ -171,29 +173,29 @@ app.get('/api/latest-burns', async (req, res) => {
     }
 });
 
-function getNextRpcEndpoint() {
-    if (!rpcEndpoints.length) {
-        throw new Error('No RPC endpoints available');
-    }
-    const endpoint = rpcEndpoints[currentRpcIndex];
-    currentRpcIndex = (currentRpcIndex + 1) % rpcEndpoints.length;
-    return endpoint;
-}
+// function getNextRpcEndpoint() {
+//     if (!rpcEndpoints.length) {
+//         throw new Error('No RPC endpoints available');
+//     }
+//     const endpoint = rpcEndpoints[currentRpcIndex];
+//     currentRpcIndex = (currentRpcIndex + 1) % rpcEndpoints.length;
+//     return endpoint;
+// }
 
-async function fetchRPC(body) {
-    const endpoint = getNextRpcEndpoint();
+// async function fetchRPC(body) {
+//     const endpoint = getNextRpcEndpoint();
     
-    const bodyStr = Buffer.isBuffer(body) ? body.toString() : body;
+//     const bodyStr = Buffer.isBuffer(body) ? body.toString() : body;
     
-    const bodyData = typeof bodyStr === 'string' ? bodyStr : JSON.stringify(bodyStr);
+//     const bodyData = typeof bodyStr === 'string' ? bodyStr : JSON.stringify(bodyStr);
     
-    const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: bodyData
-    });
-    return response.json();
-}
+//     const response = await fetch(endpoint, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: bodyData
+//     });
+//     return response.json();
+// }
 
 class MemoCache {
     constructor() {
@@ -319,6 +321,25 @@ async function initializeDatabase() {
                         else resolve();
                     });
                 });
+
+                // Initialize DbChecker and start periodic checking
+                const dbChecker = new DbChecker(db);
+
+                // process unchecked transactions when server starts
+                try {
+                    await dbChecker.processUncheckedTransactions(10);
+                } catch (error) {
+                    logger.error('Initial unchecked transactions processing failed:', error);
+                }
+
+                // process unchecked transactions every 10 minutes after server starts
+                setInterval(async () => {
+                    try {
+                        await dbChecker.processUncheckedTransactions(10);
+                    } catch (error) {
+                        logger.error('Failed to process unchecked transactions:', error);
+                    }
+                }, 10 * 60 * 1000); // every 10 minutes
 
                 // initialize cache
                 await memoCache.updateCache(db);
