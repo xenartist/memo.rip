@@ -3,6 +3,14 @@ export class Leaderboard {
         this.shuffledImages = [];
         this.currentIndex = 0;
 
+        this.ALLOWED_MIME_TYPES = [
+            'image/jpg',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp'
+        ];
+
         window.getRandomDefaultImage = () => {
             const DEFAULT_IMAGES = [
                 '../img/memo-rip-banana.png',
@@ -31,6 +39,30 @@ export class Leaderboard {
             return this.shuffledImages[this.currentIndex++];
         };
         this.init();
+    }
+
+    isValidImageUrl(url) {
+        try {
+            const urlObj = new URL(url);
+            
+            // 1. only https
+            if (urlObj.protocol !== 'https:') {
+                return false;
+            }
+
+            // 2. check file extension
+            const pathname = urlObj.pathname.toLowerCase();
+            if (pathname.includes('.')) {
+                const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+                if (!validExtensions.some(ext => pathname.endsWith(ext))) {
+                    return false;
+                }
+            }
+
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     async init() {
@@ -158,11 +190,13 @@ export class Leaderboard {
                 const cleanMemo = memo.trim();
                 if (cleanMemo.startsWith('{') && cleanMemo.endsWith('}')) {
                     const parsedMemo = JSON.parse(cleanMemo);
+
+                    const imageUrl = parsedMemo.image || '';
                     memoData = {
-                        title: parsedMemo.title || memoData.title,
-                        image: parsedMemo.image || memoData.image,
-                        content: parsedMemo.content || memoData.content,
-                        author: parsedMemo.author || memoData.author
+                        title: this.sanitizeText(parsedMemo.title) || memoData.title,
+                        image: this.isValidImageUrl(imageUrl) ? imageUrl : '',
+                        content: this.sanitizeText(parsedMemo.content) || memoData.content,
+                        author: this.sanitizeText(parsedMemo.author) || memoData.author
                     };
                 }
             }
@@ -172,14 +206,17 @@ export class Leaderboard {
 
         const content = `
             ${isTopBurn ? '<div class="memorial-pin-shadow"></div>' : ''}
-            <img src="${memoData.image}" 
-                 alt="${memoData.title}"
-                 onerror="this.onerror=null; this.src=getRandomDefaultImage();">
+            <img src="${this.encodeHTML(memoData.image || getRandomDefaultImage())}" 
+                 alt="${this.encodeHTML(memoData.title)}"
+                 onerror="this.onerror=null; this.src=getRandomDefaultImage();"
+                 loading="lazy"
+                 crossorigin="anonymous"
+                 referrerpolicy="no-referrer">
             <div class="memorial-content">
                 ${isTopBurn ? `<div class="memorial-rank">#${rank}</div>` : ''}
-                <div class="memorial-title">${memoData.title}</div>
-                <div class="memorial-text">${memoData.content}</div>
-                <div class="memorial-author">- ${memoData.author}</div>
+                <div class="memorial-title">${this.encodeHTML(memoData.title)}</div>
+                <div class="memorial-text">${this.encodeHTML(memoData.content)}</div>
+                <div class="memorial-author">- ${this.encodeHTML(memoData.author)}</div>
                 <div class="memorial-amount">🔥 Burned <span class="text-red-600 font-bold">${this.formatAmount(amount)}</span> solXEN</div>
                 <div class="memorial-time">${this.formatTimestamp(timestamp)}</div>
             </div>
@@ -187,6 +224,22 @@ export class Leaderboard {
 
         div.insertAdjacentHTML('beforeend', content);
         return div;
+    }
+
+    // encode HTML to prevent XSS
+    encodeHTML(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // limit text length
+    sanitizeText(text) {
+        if (typeof text !== 'string') return '';
+        return text.slice(0, 500); // limit length
     }
 
     formatAmount(amount) {

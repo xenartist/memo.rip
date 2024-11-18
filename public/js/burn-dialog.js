@@ -19,6 +19,11 @@ export class BurnDialog {
         this.leaderboard = leaderboard;
         this.stats = stats;
 
+        this.imagePreviewContainer = null;
+        this.imagePreview = null;
+        this.imagePreviewError = null;
+        this.imagePreviewTimeout = null;
+
         this.initializeUI();
     }
 
@@ -83,6 +88,8 @@ export class BurnDialog {
         this.setLoading(false);
         this.dialog.classList.add('hidden');
         document.body.style.overflow = ''; 
+        this.hideImagePreview(); // reset image preview
+        this.form.reset(); // reset form
     }
 
     setLoading(isLoading) {
@@ -262,8 +269,13 @@ export class BurnDialog {
         this.charCounter.className = 'text-sm text-gray-10 mt-2';
         this.form.appendChild(this.charCounter);
 
+        this.imagePreviewContainer = document.getElementById('image-preview-container');
+        this.imagePreview = document.getElementById('image-preview');
+        this.imagePreviewError = document.getElementById('image-preview-error');
+
         this.initializeEventListeners();
         this.initializeCharCounter();
+        this.initializeImagePreview();
     }
 
     initializeCharCounter() {
@@ -294,5 +306,63 @@ export class BurnDialog {
     
         // Initial counter update
         updateCounter();
+    }
+
+    initializeImagePreview() {
+        const imageInput = document.getElementById('memo-image');
+        
+        imageInput.addEventListener('input', () => {
+            // clear previous timeout
+            if (this.imagePreviewTimeout) {
+                clearTimeout(this.imagePreviewTimeout);
+            }
+
+            // set new timeout (preview after 500ms of user stop typing)
+            this.imagePreviewTimeout = setTimeout(() => {
+                const url = imageInput.value.trim();
+                
+                if (!url) {
+                    this.hideImagePreview();
+                    return;
+                }
+
+                this.previewImage(url);
+            }, 500);
+        });
+
+        // image load error handling
+        this.imagePreview.addEventListener('error', () => {
+            this.showImageError();
+        });
+    }
+
+    previewImage(url) {
+        // reset preview state
+        this.imagePreviewError.classList.add('hidden');
+        this.imagePreviewContainer.classList.remove('hidden');
+        this.imagePreview.classList.remove('hidden');
+
+        // check URL format
+        try {
+            new URL(url);
+        } catch {
+            this.showImageError();
+            return;
+        }
+
+        // set image source
+        this.imagePreview.src = url;
+    }
+
+    showImageError() {
+        this.imagePreview.classList.add('hidden');
+        this.imagePreviewError.classList.remove('hidden');
+        this.imagePreviewContainer.classList.remove('hidden');
+    }
+
+    hideImagePreview() {
+        this.imagePreviewContainer.classList.add('hidden');
+        this.imagePreview.classList.add('hidden');
+        this.imagePreviewError.classList.add('hidden');
     }
 }
