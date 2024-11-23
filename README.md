@@ -1,5 +1,7 @@
 # memo.rip
 
+for everlasting memories on solana
+
 # Install dependencies
 ```
 npm install
