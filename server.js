@@ -9,7 +9,7 @@ const { fetchRPC, setRpcEndpoints } = require('./utils');
 const app = express();
 const args = process.argv.slice(2);
 const port = args[0] || process.env.PORT || 3000;
-const TOTAL_SUPPLY = 58445764495;
+const TOTAL_SUPPLY = 66975795738;
 // database
 let db;
 // let currentRpcIndex = 0;
