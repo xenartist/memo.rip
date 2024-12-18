@@ -19,6 +19,18 @@ export class BurnStats {
     }
 
     updateUI(data) {
+        const burnTitle = document.getElementById('burn-title');
+        if (burnTitle) {
+            const flameIcon = burnTitle.querySelector('svg');  // Save the flame icon
+            burnTitle.innerHTML = `
+                <span>solXEN Burn Overview</span>
+                <a href="https://xen.pub/index-solxen.php" target="_blank" style="font-size: 0.8em; margin-left: 10px; color: #666;">(Detailed Tracker on xen.pub)</a>
+            `;
+            if (flameIcon) {
+                burnTitle.appendChild(flameIcon);  // Restore the flame icon
+            }
+        }
+        
         document.getElementById('total-burn').textContent = 
             this.formatNumber(data.totalBurn);
         document.getElementById('burn-percentage').textContent = 
