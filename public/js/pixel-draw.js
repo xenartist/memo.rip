@@ -43,23 +43,33 @@ export class PixelDraw {
         document.getElementById('tab-image-url').addEventListener('click', () => this.switchTab('url'));
         document.getElementById('tab-pixel-draw').addEventListener('click', () => this.switchTab('draw'));
 
-        // Simplified pixel drawing - just click
-        pixelGrid.addEventListener('click', (e) => {
+        // Disable context menu in pixel grid
+        pixelGrid.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
+        // Left click to draw, right click to erase
+        pixelGrid.addEventListener('mousedown', (e) => {
             const pixel = e.target.closest('[data-row]');
-            if (pixel) {
-                this.togglePixel(pixel);
+            if (!pixel) return;
+
+            if (e.button === 0) {  // Left click
+                this.setPixel(pixel, 1);
+            } else if (e.button === 2) {  // Right click
+                this.setPixel(pixel, 0);
             }
         });
 
         clearButton.addEventListener('click', () => this.clearGrid());
     }
 
-    togglePixel(pixel) {
+    // New method to set pixel value directly
+    setPixel(pixel, value) {
         const row = parseInt(pixel.dataset.row);
         const col = parseInt(pixel.dataset.col);
         
-        this.grid[row][col] = this.grid[row][col] ? 0 : 1;
-        pixel.style.backgroundColor = this.grid[row][col] ? '#000' : '';
+        this.grid[row][col] = value;
+        pixel.style.backgroundColor = value ? '#000' : '';
     }
 
     clearGrid() {
