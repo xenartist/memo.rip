@@ -286,13 +286,18 @@ export class BurnDialog {
     initializeCharCounter() {
         // Maximum length for memo instruction (548 bytes)
         const MAX_MEMO_LENGTH = 548;
-
         const BASE_JSON_LENGTH = 48;
+        const PIXEL_PREFIX = "pixel:";
+        const PIXEL_DATA_LENGTH = 256; // 32x32 pixel data length
         
         const updateCounter = () => {
+            const isPixelDrawTab = document.getElementById('image-url-content').classList.contains('hidden');
+            
             const memoContent = JSON.stringify({
                 title: document.getElementById('memo-title').value,
-                image: document.getElementById('memo-image').value,
+                image: isPixelDrawTab ? 
+                    PIXEL_PREFIX + "0".repeat(PIXEL_DATA_LENGTH) : // pixel data length
+                    document.getElementById('memo-image').value,
                 content: document.getElementById('memo-content').value,
                 author: document.getElementById('memo-author').value
             });
@@ -309,6 +314,10 @@ export class BurnDialog {
         ['memo-title', 'memo-image', 'memo-content', 'memo-author'].forEach(id => {
             document.getElementById(id).addEventListener('input', updateCounter);
         });
+
+        // Add tab switch listeners
+        document.getElementById('tab-image-url').addEventListener('click', updateCounter);
+        document.getElementById('tab-pixel-draw').addEventListener('click', updateCounter);
     
         // Initial counter update
         updateCounter();
