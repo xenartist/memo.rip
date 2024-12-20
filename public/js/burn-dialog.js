@@ -1,4 +1,5 @@
 import { WalletManager } from './wallet.js';
+import { PixelDraw } from './pixel-draw.js';
 
 export class BurnDialog {
     constructor(walletManager, leaderboard, stats) {
@@ -23,6 +24,8 @@ export class BurnDialog {
         this.imagePreview = null;
         this.imagePreviewError = null;
         this.imagePreviewTimeout = null;
+
+        this.pixelDraw = new PixelDraw();
 
         this.initializeUI();
     }
@@ -131,7 +134,9 @@ export class BurnDialog {
             const formData = {
                 amount: parseFloat(document.getElementById('burn-amount').value),
                 title: document.getElementById('memo-title').value,
-                image: document.getElementById('memo-image').value,
+                image: document.getElementById('image-url-content').classList.contains('hidden') 
+                    ? `pixel:${this.pixelDraw.getPixelData()}`  // Prefix pixel data with "pixel:"
+                    : document.getElementById('memo-image').value,
                 content: document.getElementById('memo-content').value,
                 author: document.getElementById('memo-author').value
             };
