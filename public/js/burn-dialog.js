@@ -300,8 +300,9 @@ export class BurnDialog {
             const currentLength = memoContent.length;
             const remainingChars = MAX_MEMO_LENGTH - currentLength;
             
-            this.charCounter.textContent = `Characters remaining: ${remainingChars}/${MAX_MEMO_LENGTH - BASE_JSON_LENGTH}`;
-            this.charCounter.style.color = remainingChars < 0 ? 'red' : 'inherit';
+            const charCounter = document.getElementById('char-counter');
+            charCounter.textContent = `Characters remaining: ${remainingChars}/${MAX_MEMO_LENGTH - BASE_JSON_LENGTH}`;
+            charCounter.style.color = remainingChars < 0 ? 'red' : 'inherit';
         };
     
         // Add input event listeners to all memo fields

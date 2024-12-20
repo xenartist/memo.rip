@@ -78,7 +78,7 @@
             </div>
 
             <div id="burn-dialog" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-                <div class="bg-white rounded-lg max-w-xl w-full mx-4">
+                <div class="bg-white rounded-lg max-w-6xl w-full mx-4">
                     <div class="flex items-center justify-between p-4 border-b">
                         <h3 class="text-lg font-semibold text-gray-900">Burn with Memo</h3>
                         <button id="close-dialog" class="text-gray-500 hover:text-gray-700">
@@ -88,28 +88,46 @@
                         </button>
                     </div>
 
-                    <form id="burn-form" class="p-4">
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Burn Amount</label>
-                                <div class="flex items-center space-x-2">
-                                    <input type="number" 
-                                        id="burn-amount" 
-                                        value="420" 
-                                        min="0" 
-                                        step="any"
+                    <form id="burn-form" class="flex">
+                        <div class="w-1/2 p-4 border-r">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Burn Amount</label>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="number" 
+                                            id="burn-amount" 
+                                            value="420" 
+                                            min="0" 
+                                            step="any"
+                                            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
+                                        <span class="text-gray-600">solXEN</span>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                    <input type="text" id="memo-title" 
+                                        placeholder="solXEN Burn with Memo" 
                                         class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-                                    <span class="text-gray-600">solXEN</span>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                                    <textarea id="memo-content" rows="8" 
+                                        placeholder="solXEN To Da Moon"
+                                        class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Author</label>
+                                    <input type="text" id="memo-author" 
+                                        placeholder="solXEN"
+                                        class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
                                 </div>
                             </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                                <input type="text" id="memo-title" 
-                                    placeholder="solXEN Burn with Memo" 
-                                    class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-                            </div>
-                            
+                        </div>
+
+                        <div class="w-1/2 p-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
                                 <div class="mb-4">
@@ -133,11 +151,14 @@
                                                placeholder="https://xxx.png (HTTPS required, supports png, jpg/jpeg, gif, webp)"
                                                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
                                         
-                                        <div id="image-preview-container" class="mt-2 hidden">
-                                            <img id="image-preview" class="max-h-40 rounded-lg border border-gray-200" alt="Preview">
-                                            <p id="image-preview-error" class="text-red-500 text-sm mt-1 hidden">
+                                        <div id="image-preview-container" class="mt-2 h-[512px] flex items-center justify-center border border-gray-200 rounded-lg">
+                                            <img id="image-preview" class="h-[512px] w-[512px] object-contain hidden" alt="Preview">
+                                            <p id="image-preview-error" class="text-red-500 text-sm hidden">
                                                 Unable to load image. Please check the URL.
                                             </p>
+                                            <div id="image-preview-placeholder" class="text-gray-400">
+                                                Image preview will appear here
+                                            </div>
                                         </div>
                                     </div>
 
@@ -154,23 +175,12 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
-                                <textarea id="memo-content" rows="3" 
-                                    placeholder="solXEN To Da Moon"
-                                    class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Author</label>
-                                <input type="text" id="memo-author" 
-                                    placeholder="solXEN"
-                                    class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500">
-                            </div>
                         </div>
+                    </form>
 
-                        <div class="mt-6 flex justify-end space-x-3">
+                    <div class="border-t p-4 flex justify-between items-center">
+                        <div id="char-counter" class="text-sm text-gray-500"></div>
+                        <div class="flex space-x-3">
                             <button type="button" id="cancel-burn" 
                                 class="px-4 py-2 border rounded-md hover:bg-gray-50">
                                 Cancel
@@ -186,7 +196,7 @@
                                 </div>
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </main>
