@@ -189,7 +189,7 @@ export class Leaderboard {
         const randomBrightColor = () => {
             const h = Math.floor(Math.random() * 360);    // Random hue
             const s = 70 + Math.random() * 30;           // Saturation 70-100%
-            const l = 50 + Math.random() * 20;           // Lightness 50-70%
+            const l = 60 + Math.random() * 20;           // Lightness 60-80%
             return `hsl(${h}, ${s}%, ${l}%)`;
         };
 
