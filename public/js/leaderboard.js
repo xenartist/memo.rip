@@ -185,21 +185,30 @@ export class Leaderboard {
         const ctx = canvas.getContext('2d');
         const binaryArray = this.hexToBinaryArray(pixelData);
 
-        // Generate random color (avoiding too light colors)
-        const randomColor = () => {
+        // Generate random bright color for pixels
+        const randomBrightColor = () => {
             const h = Math.floor(Math.random() * 360);    // Random hue
             const s = 70 + Math.random() * 30;           // Saturation 70-100%
-            const l = 30 + Math.random() * 20;           // Lightness 30-50%
+            const l = 50 + Math.random() * 20;           // Lightness 50-70%
+            return `hsl(${h}, ${s}%, ${l}%)`;
+        };
+
+        // Generate random dark color for background
+        const randomDarkColor = () => {
+            const h = Math.floor(Math.random() * 360);    // Random hue
+            const s = 30 + Math.random() * 30;           // Saturation 30-60%
+            const l = 10 + Math.random() * 15;           // Lightness 10-25%
             return `hsl(${h}, ${s}%, ${l}%)`;
         };
         
-        // Generate a random color for this pixel art
-        const pixelColor = randomColor();
+        // Generate colors for this pixel art
+        const pixelColor = randomBrightColor();
+        const bgColor = randomDarkColor();
         
         // Draw pixels on canvas, each pixel as 16x16
         for (let i = 0; i < 32; i++) {
             for (let j = 0; j < 32; j++) {
-                ctx.fillStyle = binaryArray[i][j] ? pixelColor : '#fff';
+                ctx.fillStyle = binaryArray[i][j] ? pixelColor : bgColor;
                 ctx.fillRect(j * 16, i * 16, 16, 16);  // Scale each pixel to 16x16
             }
         }
