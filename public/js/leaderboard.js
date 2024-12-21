@@ -172,7 +172,7 @@ export class Leaderboard {
         return binaryArray;
     }
 
-    // Create canvas for pixel art display
+    // Create canvas for pixel art display with random colors
     createPixelCanvas(pixelData) {
         const canvas = document.createElement('canvas');
         canvas.width = 512;   // 32 pixels * 16px = 512px
@@ -184,11 +184,22 @@ export class Leaderboard {
         
         const ctx = canvas.getContext('2d');
         const binaryArray = this.hexToBinaryArray(pixelData);
+
+        // Generate random color (avoiding too light colors)
+        const randomColor = () => {
+            const h = Math.floor(Math.random() * 360);    // Random hue
+            const s = 70 + Math.random() * 30;           // Saturation 70-100%
+            const l = 30 + Math.random() * 20;           // Lightness 30-50%
+            return `hsl(${h}, ${s}%, ${l}%)`;
+        };
+        
+        // Generate a random color for this pixel art
+        const pixelColor = randomColor();
         
         // Draw pixels on canvas, each pixel as 16x16
         for (let i = 0; i < 32; i++) {
             for (let j = 0; j < 32; j++) {
-                ctx.fillStyle = binaryArray[i][j] ? '#000' : '#fff';
+                ctx.fillStyle = binaryArray[i][j] ? pixelColor : '#fff';
                 ctx.fillRect(j * 16, i * 16, 16, 16);  // Scale each pixel to 16x16
             }
         }
