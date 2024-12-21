@@ -74,6 +74,11 @@ export class BurnDialog {
             }
         });
 
+        document.getElementById('confirm-burn-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.handleSubmit(e);
+        });
+
         this.form.addEventListener('submit', (e) => this.handleSubmit(e));
     }
 
@@ -135,7 +140,7 @@ export class BurnDialog {
                 amount: parseFloat(document.getElementById('burn-amount').value),
                 title: document.getElementById('memo-title').value,
                 image: document.getElementById('image-url-content').classList.contains('hidden') 
-                    ? `pixel:${this.pixelDraw.getPixelData()}`  // Prefix pixel data with "pixel:"
+                    ? `pixel:32x32,0x${this.pixelDraw.getPixelData()}`  // Pixel data with format info
                     : document.getElementById('memo-image').value,
                 content: document.getElementById('memo-content').value,
                 author: document.getElementById('memo-author').value
@@ -148,6 +153,15 @@ export class BurnDialog {
                 content: formData.content,
                 author: formData.author
             });
+
+            // Debug logs
+            console.log('Form Data:', formData);
+            console.log('Memo Content JSON:', memoContent);
+            console.log('Memo Content Length:', memoContent.length, 'bytes');
+            console.log('Raw Pixel Data:', this.pixelDraw.getPixelData());
+
+            // Stop here for testing
+            return;
 
             if (isNaN(formData.amount) || formData.amount <= 0) {
                 throw new Error('Please enter a valid amount');
@@ -287,7 +301,7 @@ export class BurnDialog {
         // Maximum length for memo instruction (548 bytes)
         const MAX_MEMO_LENGTH = 548;
         const BASE_JSON_LENGTH = 48;
-        const PIXEL_PREFIX = "pixel: 32x32, hex, "; // pixel data prefix in hex string format
+        const PIXEL_PREFIX = "pixel:32x32,0x"; // pixel data prefix in hex string format
         const PIXEL_DATA_LENGTH = 128; // 32x32 pixel data in hex string format
         
         const updateCounter = () => {
