@@ -19,6 +19,28 @@ export class PixelDraw {
             }
         }
 
+        // Create container for instruction and clear button
+        const controlsContainer = document.createElement('div');
+        controlsContainer.className = 'flex justify-between items-center mt-2';
+
+        // Add mouse instruction text
+        const instruction = document.createElement('div');
+        instruction.className = 'text-sm text-gray-500';
+        instruction.textContent = '(mouse: left->draw, right->clear)';
+
+        // Create clear button
+        const clearButton = document.createElement('button');
+        clearButton.id = 'clear-pixels';
+        clearButton.className = 'px-3 py-1 text-sm border rounded hover:bg-gray-50';
+        clearButton.textContent = 'Clear All';
+
+        // Add elements to container
+        controlsContainer.appendChild(instruction);
+        controlsContainer.appendChild(clearButton);
+
+        // Add container after pixel grid
+        pixelGrid.parentNode.insertBefore(controlsContainer, pixelGrid.nextSibling);
+
         // Add custom CSS for pixel grid
         const style = document.createElement('style');
         style.textContent = `
@@ -26,13 +48,25 @@ export class PixelDraw {
                 display: grid;
                 grid-template-columns: repeat(32, 16px);
                 gap: 0;
+                position: relative;
             }
             #pixel-grid > div {
                 width: 16px;
                 height: 16px;
             }
+            #pixel-grid::after {
+                content: '(mouse: left->draw, right->clear)';
+                position: absolute;
+                bottom: -20px;
+                left: 0;
+                font-size: 0.875rem;
+                color: #6b7280;
+            }
         `;
         document.head.appendChild(style);
+
+        // Remove the separate instruction element since we're using CSS ::after
+        controlsContainer.removeChild(instruction);
     }
 
     setupEventListeners() {
