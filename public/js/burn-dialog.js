@@ -293,7 +293,7 @@ export class BurnDialog {
         const MAX_MEMO_LENGTH = 548;
         const BASE_JSON_LENGTH = 48;
         const PIXEL_PREFIX = "pixel:32x32,0x"; // pixel data prefix in hex string format
-        const PIXEL_DATA_LENGTH = 128; // 32x32 pixel data in hex string format
+        const PIXEL_DATA_LENGTH = 256; // 32x32 pixel data in hex string format
         
         const updateCounter = () => {
             const isPixelDrawTab = document.getElementById('image-url-content').classList.contains('hidden');
