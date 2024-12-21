@@ -154,15 +154,6 @@ export class BurnDialog {
                 author: formData.author
             });
 
-            // Debug logs
-            console.log('Form Data:', formData);
-            console.log('Memo Content JSON:', memoContent);
-            console.log('Memo Content Length:', memoContent.length, 'bytes');
-            console.log('Raw Pixel Data:', this.pixelDraw.getPixelData());
-
-            // Stop here for testing
-            return;
-
             if (isNaN(formData.amount) || formData.amount <= 0) {
                 throw new Error('Please enter a valid amount');
             }
