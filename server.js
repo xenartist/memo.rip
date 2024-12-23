@@ -173,6 +173,23 @@ app.get('/api/latest-burns', async (req, res) => {
     }
 });
 
+// Route to get top total burns
+app.get('/api/top-total-burns', async (req, res) => {
+    try {
+        const topTotalBurns = await memoCache.getTopTotalBurns(db);
+        // Format the response
+        const formattedBurns = topTotalBurns.map((burner, index) => ({
+            rank: index + 1,
+            address: burner.burner,
+            totalAmount: Math.floor(burner.total_amount / 1_000_000), // Convert to whole numbers
+            burnCount: burner.burn_count
+        }));
+        res.json(formattedBurns);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // function getNextRpcEndpoint() {
 //     if (!rpcEndpoints.length) {
 //         throw new Error('No RPC endpoints available');
@@ -199,9 +216,10 @@ app.get('/api/latest-burns', async (req, res) => {
 
 class MemoCache {
     constructor() {
-        this.topAmountCache = [];    
-        this.latestCache = [];       
-        this.totalBurnCache = 0;
+        this.topAmountCache = []; // top 10 burns
+        this.latestCache = [];  // latest 10 burns
+        this.topTotalBurnsCache = []; // top 69 burns
+        this.totalBurnCache = 0; // total burn amount
         this.lastUpdateTime = 0;     
         this.CACHE_DURATION = 5 * 60 * 1000;  // cache duration 5 minutes
     }
@@ -244,8 +262,26 @@ class MemoCache {
                 });
             })
 
+            // New: get top 69 burners by total amount
+            const topTotalBurns = await new Promise((resolve, reject) => {
+                db.all(`
+                    SELECT burner, 
+                           SUM(amount) as total_amount,
+                           COUNT(*) as burn_count
+                    FROM burns 
+                    WHERE memo_checked = 'Y'
+                    GROUP BY burner
+                    ORDER BY total_amount DESC 
+                    LIMIT 69
+                `, (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                });
+            });
+
             this.topAmountCache = topAmount;
             this.latestCache = latest;
+            this.topTotalBurnsCache = topTotalBurns;
             this.totalBurnCache = totalBurn.amount;
             this.lastUpdateTime = Date.now();
             
@@ -253,6 +289,7 @@ class MemoCache {
                 topAmount: topAmount.length,
                 latest: latest.length,
                 totalBurn: totalBurn.amount,
+                topTotalBurns: topTotalBurns.length,
                 time: new Date().toISOString()
             });
         } catch (error) {
@@ -284,6 +321,13 @@ class MemoCache {
             await this.updateCache(db);
         }
         return this.totalBurnCache;
+    }
+
+    async getTopTotalBurns(db) {
+        if (this.needsUpdate()) {
+            await this.updateCache(db);
+        }
+        return this.topTotalBurnsCache;
     }
 
     async invalidateCache(db) {

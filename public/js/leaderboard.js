@@ -67,12 +67,14 @@ export class Leaderboard {
 
     async init() {
         try {
-            const [topBurns, latestBurns] = await Promise.all([
+            const [topBurns, latestBurns, topTotalBurns] = await Promise.all([
                 this.fetchTopBurns(),
-                this.fetchLatestBurns()
+                this.fetchLatestBurns(),
+                this.fetchTopTotalBurns()
             ]);
             this.renderTopBurns(topBurns);
             this.renderLatestBurns(latestBurns);
+            this.renderTopTotalBurns(topTotalBurns);
         } catch (error) {
             console.error('Failed to initialize leaderboards:', error);
         }
@@ -108,6 +110,19 @@ export class Leaderboard {
         }
     }
 
+    async fetchTopTotalBurns() {
+        try {
+            const response = await fetch('/api/top-total-burns');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching top total burns:', error);
+            throw error;
+        }
+    }
+
     renderTopBurns(burns) {
         const container = document.getElementById('top-burns-list');
         container.innerHTML = '';
@@ -138,6 +153,32 @@ export class Leaderboard {
                 isLatest: true
             });
             container.appendChild(note);
+        });
+    }
+
+    renderTopTotalBurns(burners) {
+        const container = document.getElementById('top-total-burns-list');
+        container.innerHTML = '';
+        
+        burners.forEach(burner => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between p-2 border-b';
+            
+            // Format address: first 6 chars + ****
+            const formattedAddress = `${burner.address.slice(0, 6)}****`;
+            
+            div.innerHTML = `
+                <div class="flex items-center">
+                    <span class="text-gray-500 w-8">#${burner.rank}</span>
+                    <span class="font-mono">${formattedAddress}</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-red-600 font-bold">${burner.totalAmount}</span>
+                    <span class="text-gray-500">solXEN</span>
+                </div>
+            `;
+            
+            container.appendChild(div);
         });
     }
 

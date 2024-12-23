@@ -245,12 +245,14 @@ export class BurnDialog {
     async refreshLeaderboards() {
         try {
             if (this.leaderboard) {
-                const [topBurns, latestBurns] = await Promise.all([
+                const [topBurns, latestBurns, topTotalBurns] = await Promise.all([
                     this.leaderboard.fetchTopBurns(),
-                    this.leaderboard.fetchLatestBurns()
+                    this.leaderboard.fetchLatestBurns(),
+                    this.leaderboard.fetchTopTotalBurns()
                 ]);
                 this.leaderboard.renderTopBurns(topBurns);
                 this.leaderboard.renderLatestBurns(latestBurns);
+                this.leaderboard.renderTopTotalBurns(topTotalBurns);
             }
         } catch (error) {
             console.error('Failed to refresh leaderboards:', error);
