@@ -98,10 +98,10 @@ export class Leaderboard {
     updateRotatingBurn() {
         const burn = this.topTotalBurnsData[this.currentBurnIndex];
         const container = document.getElementById('rotating-total-burn');
-        
         const formattedAddress = `${burn.address.slice(0, 6)}****`;
         
-        container.innerHTML = `
+        // Create new content
+        const newContent = `
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="text-gray-500">#${burn.rank}</span>
@@ -112,6 +112,36 @@ export class Leaderboard {
                 </div>
             </div>
         `;
+
+        // Create temporary container with both old and new content
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative h-6 overflow-hidden'; // Fixed height container
+        
+        // Add current content (if exists) and new content
+        wrapper.innerHTML = `
+            <div class="absolute w-full transition-transform duration-500 ease-in-out">
+                ${container.innerHTML}
+            </div>
+            <div class="absolute w-full transition-transform duration-500 ease-in-out translate-y-full">
+                ${newContent}
+            </div>
+        `;
+
+        // Replace container content
+        container.innerHTML = '';
+        container.appendChild(wrapper);
+
+        // Trigger animation after a small delay
+        setTimeout(() => {
+            const [oldContent, newContent] = wrapper.children;
+            oldContent.style.transform = 'translateY(-100%)';
+            newContent.style.transform = 'translateY(0)';
+        }, 50);
+
+        // Clean up after animation
+        setTimeout(() => {
+            container.innerHTML = newContent;
+        }, 500);
     }
 
     async init() {
