@@ -1,5 +1,10 @@
 export class Leaderboard {
     constructor() {
+        this.topTotalBurnsData = [];
+        this.currentBurnIndex = 0;
+        this.initializeModalHandlers();
+        this.startRotation();
+
         this.shuffledImages = [];
         this.currentIndex = 0;
 
@@ -65,6 +70,50 @@ export class Leaderboard {
         }
     }
 
+    initializeModalHandlers() {
+        document.getElementById('show-all-total-burns').addEventListener('click', () => {
+            document.getElementById('top-total-burns-modal').classList.remove('hidden');
+        });
+
+        document.getElementById('close-total-burns-modal').addEventListener('click', () => {
+            document.getElementById('top-total-burns-modal').classList.add('hidden');
+        });
+
+        document.getElementById('top-total-burns-modal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                e.target.classList.add('hidden');
+            }
+        });
+    }
+
+    startRotation() {
+        setInterval(() => {
+            if (this.topTotalBurnsData.length > 0) {
+                this.currentBurnIndex = (this.currentBurnIndex + 1) % this.topTotalBurnsData.length;
+                this.updateRotatingBurn();
+            }
+        }, 5000);
+    }
+
+    updateRotatingBurn() {
+        const burn = this.topTotalBurnsData[this.currentBurnIndex];
+        const container = document.getElementById('rotating-total-burn');
+        
+        const formattedAddress = `${burn.address.slice(0, 6)}****`;
+        
+        container.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-gray-500">#${burn.rank}</span>
+                    <span class="font-mono">${formattedAddress}</span>
+                </div>
+                <div>
+                    <span class="text-red-600 font-bold">${burn.totalAmount}</span>
+                </div>
+            </div>
+        `;
+    }
+
     async init() {
         try {
             const [topBurns, latestBurns, topTotalBurns] = await Promise.all([
@@ -72,6 +121,8 @@ export class Leaderboard {
                 this.fetchLatestBurns(),
                 this.fetchTopTotalBurns()
             ]);
+            this.topTotalBurnsData = topTotalBurns;
+            this.updateRotatingBurn();
             this.renderTopBurns(topBurns);
             this.renderLatestBurns(latestBurns);
             this.renderTopTotalBurns(topTotalBurns);
