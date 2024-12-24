@@ -246,7 +246,7 @@ export class Leaderboard {
 
         // Calculate total amount of top 69 burners
         const totalAmount = burners.reduce((sum, burner) => sum + Number(burner.totalAmount), 0);
-        console.log('Top Total amount:', totalAmount);
+
         burners.forEach(burner => {
             const div = document.createElement('div');
             div.className = 'flex items-center justify-between p-2 border-b';
@@ -255,7 +255,6 @@ export class Leaderboard {
             const formattedAddress = `${burner.address.slice(0, 6)}****`;
 
             const percentage = ((Number(burner.totalAmount) / totalAmount) * 100).toFixed(2);
-            console.log('Percentage:', percentage);
             
             div.innerHTML = `
                 <div class="flex items-center gap-3">
