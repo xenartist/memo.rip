@@ -190,30 +190,6 @@ app.get('/api/top-total-burns', async (req, res) => {
     }
 });
 
-// function getNextRpcEndpoint() {
-//     if (!rpcEndpoints.length) {
-//         throw new Error('No RPC endpoints available');
-//     }
-//     const endpoint = rpcEndpoints[currentRpcIndex];
-//     currentRpcIndex = (currentRpcIndex + 1) % rpcEndpoints.length;
-//     return endpoint;
-// }
-
-// async function fetchRPC(body) {
-//     const endpoint = getNextRpcEndpoint();
-    
-//     const bodyStr = Buffer.isBuffer(body) ? body.toString() : body;
-    
-//     const bodyData = typeof bodyStr === 'string' ? bodyStr : JSON.stringify(bodyStr);
-    
-//     const response = await fetch(endpoint, {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: bodyData
-//     });
-//     return response.json();
-// }
-
 class MemoCache {
     constructor() {
         this.topAmountCache = []; // top 10 burns
