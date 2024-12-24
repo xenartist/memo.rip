@@ -232,6 +232,7 @@ class MemoCache {
                     SELECT signature, burner, amount, memo, token, timestamp, created_at
                     FROM burns 
                     WHERE memo_checked = 'Y'
+                    AND amount > 0
                     ORDER BY amount DESC 
                     LIMIT 10
                 `, (err, rows) => {
@@ -246,6 +247,7 @@ class MemoCache {
                     SELECT signature, burner, amount, memo, token, timestamp, created_at
                     FROM burns 
                     WHERE memo_checked = 'Y'
+                    AND amount > 0
                     ORDER BY timestamp DESC 
                     LIMIT 10
                 `, (err, rows) => {
@@ -262,7 +264,7 @@ class MemoCache {
                 });
             })
 
-            // New: get top 69 burners by total amount
+            // get top 69 burners by total amount
             const topTotalBurns = await new Promise((resolve, reject) => {
                 db.all(`
                     SELECT burner, 
@@ -271,6 +273,7 @@ class MemoCache {
                     FROM burns 
                     WHERE memo_checked = 'Y'
                     GROUP BY burner
+                    HAVING SUM(amount) >= 420
                     ORDER BY total_amount DESC 
                     LIMIT 69
                 `, (err, rows) => {
