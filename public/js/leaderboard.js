@@ -251,7 +251,7 @@ export class Leaderboard {
             div.innerHTML = `
                 <div class="flex items-center">
                     <span class="text-gray-500 w-8">#${burner.rank}</span>
-                    <span class="font-mono">${formattedAddress}</span>
+                    <span class="font-bold">${formattedAddress}</span>
                 </div>
                 <div class="text-right">
                     <span class="text-red-600 font-bold">${burner.totalAmount}</span>

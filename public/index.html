@@ -217,16 +217,16 @@
 
             <!-- Modal for full top total burns list -->
             <div id="top-total-burns-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-                <div class="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full max-h-[80vh] mx-4">
+                <div class="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4" style="max-height: 80vh;">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold">Top 69 Total Burns</h3>
+                        <h3 class="text-xl font-bold">69 Top Total Burners</h3>
                         <button id="close-total-burns-modal" class="text-gray-500 hover:text-gray-700">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </button>
                     </div>
-                    <div id="top-total-burns-list" class="overflow-y-auto max-h-[60vh]">
+                    <div id="top-total-burns-list" class="overflow-y-auto" style="max-height: calc(80vh - 8rem);">
                         <!-- Will be populated by JavaScript -->
                     </div>
                 </div>

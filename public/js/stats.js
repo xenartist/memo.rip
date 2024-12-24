@@ -1,6 +1,5 @@
 export class BurnStats {
     constructor() {
-        this.totalSupply = 58294721418;
     }
 
     async fetchStats() {
