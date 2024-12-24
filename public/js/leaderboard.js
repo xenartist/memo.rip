@@ -97,6 +97,8 @@ export class Leaderboard {
 
     updateRotatingBurn() {
         const burn = this.topTotalBurnsData[this.currentBurnIndex];
+        const totalAmount = this.topTotalBurnsData.reduce((sum, burner) => sum + Number(burner.totalAmount), 0);
+        const percentage = ((Number(burn.totalAmount) / totalAmount) * 100).toFixed(2);
         const container = document.getElementById('rotating-total-burn');
         const formattedAddress = `${burn.address.slice(0, 6)}****`;
         
@@ -109,6 +111,7 @@ export class Leaderboard {
                 </div>
                 <div>
                     <span class="text-red-600 font-bold">${burn.totalAmount}</span>
+                    <span class="text-blue-600">(${percentage}%)</span>
                 </div>
             </div>
         `;
@@ -240,22 +243,29 @@ export class Leaderboard {
     renderTopTotalBurns(burners) {
         const container = document.getElementById('top-total-burns-list');
         container.innerHTML = '';
-        
+
+        // Calculate total amount of top 69 burners
+        const totalAmount = burners.reduce((sum, burner) => sum + Number(burner.totalAmount), 0);
+        console.log('Top Total amount:', totalAmount);
         burners.forEach(burner => {
             const div = document.createElement('div');
             div.className = 'flex items-center justify-between p-2 border-b';
             
             // Format address: first 6 chars + ****
             const formattedAddress = `${burner.address.slice(0, 6)}****`;
+
+            const percentage = ((Number(burner.totalAmount) / totalAmount) * 100).toFixed(2);
+            console.log('Percentage:', percentage);
             
             div.innerHTML = `
-                <div class="flex items-center">
-                    <span class="text-gray-500 w-8">#${burner.rank}</span>
-                    <span class="font-bold">${formattedAddress}</span>
+                <div class="flex items-center gap-3">
+                    <span class="text-gray-500 text-lg w-12">#${burner.rank}</span>
+                    <span class="font-mono text-base">${formattedAddress}</span>
                 </div>
-                <div class="text-right">
-                    <span class="text-red-600 font-bold">${burner.totalAmount}</span>
-                    <span class="text-gray-500">solXEN</span>
+                <div class="text-right flex items-center gap-4">
+                    <span class="text-red-600 font-bold text-lg">${burner.totalAmount}</span>
+                    <span class="text-gray-500 text-base">solXEN</span>
+                    <span class="text-blue-600 text-base">(${percentage}%)</span>
                 </div>
             `;
             
