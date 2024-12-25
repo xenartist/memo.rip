@@ -53,3 +53,33 @@ pm2 logs solana-rpc-proxy
 ```
 pm2 monit
 ```
+
+# Sync database
+
+* Config SSH key
+```
+ssh-keygen -t rsa
+
+ssh-copy-id user@source-server
+``` 
+
+* Sync database from source server to backup server
+```
+bash data/sync_db.sh
+```
+
+* Cron job
+```
+crontab -e
+```
+
+* Add cron job
+```
+# sync every 30 minutes
+*/30 * * * * bash /path/to/memo.rip/data/sync_db.sh
+```
+
+* View logs
+```
+tail -f /var/log/db_sync.log
+```
