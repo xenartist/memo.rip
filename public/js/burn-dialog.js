@@ -82,14 +82,97 @@ export class BurnDialog {
         this.form.addEventListener('submit', (e) => this.handleSubmit(e));
     }
 
-    showDialog() {
+    async showDialog() {
         if (!this.walletManager.walletState.connected) {
             alert('Please connect your wallet first');
             return;
         }
+
+        // Show disclaimer modal first
+        const agreed = await this.showDisclaimerModal();
+        if (!agreed) {
+            return;
+        }
     
         this.dialog.classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; 
+        document.body.style.overflow = 'hidden';
+    }
+
+    showDisclaimerModal() {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full mx-4 p-6">
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white text-center">IMPORTANT NOTICE</h3>
+                        <div class="space-y-4 text-gray-600 dark:text-gray-300">
+                            <div>
+                                <h4 class="font-semibold mb-1">Source and Distribution of XN Rewards</h4>
+                                <p>The XN rewards distributed by memo.rip are exclusively derived from the Voting Commission Fee (XN) of the memo.rip validator node. These rewards are periodically allocated based on leaderboard rankings.</p>
+                                <p>Please note that these rewards are independent of the solXEN/XEN core team and are not authorized or endorsed by them.</p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold mb-1">Testnet Token Disclaimer</h4>
+                                <p>The XN tokens displayed on this website are Xolana testnet tokens with no monetary value or price. Users are strongly advised not to base any financial decisions on them.</p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold mb-1">Content Source and Responsibility</h4>
+                                <p>All content displayed on this website is sourced from decentralized on-chain data from the Solana blockchain or third-party image hyperlinks. The website itself does not store any content. If you identify infringing information, please contact us, and we will take steps to block it on the frontend.</p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold mb-1">User Privacy Protection</h4>
+                                <p>Memo information created on memo.rip is public and stored in plain text on the Solana blockchain. Users are advised to protect their privacy and avoid sharing sensitive or confidential information.</p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold mb-1">Official XN Airdrop Statement</h4>
+                                <p>The official XN airdrop from solXEN/XEN core team is exclusively distributed through the HASH mining process. For detailed information, please refer to the official documentation: <a href="https://docs.solxen.io/#mining" target="_blank" class="text-blue-500 hover:underline">https://docs.solxen.io/#mining</a>.</p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold mb-1 text-red-500">Risk Warning</h4>
+                                <p class="text-red-500">Burning solXEN carries inherent risks. Users are strongly encouraged to exercise caution and make informed decisions after thorough understanding.</p>
+                            </div>
+                        </div>
+                        <div class="text-center text-gray-500">Time remaining: <span id="disclaimer-countdown">30</span>s</div>
+                        <div class="flex justify-center gap-4">
+                            <button class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700" id="disclaimer-agree">I Understand & Agree</button>
+                            <button class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" id="disclaimer-disagree">Disagree</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            let countdown = 30;
+            const countdownEl = modal.querySelector('#disclaimer-countdown');
+            const timer = setInterval(() => {
+                countdown--;
+                countdownEl.textContent = countdown;
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    modal.remove();
+                    resolve(false);
+                }
+            }, 1000);
+
+            modal.querySelector('#disclaimer-disagree').addEventListener('click', () => {
+                clearInterval(timer);
+                modal.remove();
+                resolve(false);
+            });
+
+            modal.querySelector('#disclaimer-agree').addEventListener('click', () => {
+                clearInterval(timer);
+                modal.remove();
+                resolve(true);
+            });
+        });
     }
 
     hideDialog() {
