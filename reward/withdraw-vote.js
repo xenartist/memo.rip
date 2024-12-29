@@ -31,8 +31,7 @@ async function withdrawVoteRewards() {
         const voteBalanceInSol = voteBalance / LAMPORTS_PER_SOL;
 
         // Calculate withdrawable balance with 3 decimal places
-        //const withdrawableBalance = Number((voteBalanceInSol - MIN_BALANCE).toFixed(3));
-        const withdrawableBalance = Number((0.1 - MIN_BALANCE).toFixed(3)); //DEBUGGING PURPOSES
+        const withdrawableBalance = Number((voteBalanceInSol - MIN_BALANCE).toFixed(3));
 
         // Calculate amounts with 3 decimal places
         const rewardAmount = Number((withdrawableBalance * RATIO).toFixed(3));
