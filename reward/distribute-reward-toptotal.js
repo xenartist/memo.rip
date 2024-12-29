@@ -3,11 +3,11 @@ const { Connection, PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER
 const path = require('path');
 const fs = require('fs');
 
-// Configuration
-const RPC_URL = "RPC_URL";
-const MIN_REWARD_BALANCE = 5; // Minimum SOL needed in reward wallet
-const MIN_KEEP_BALANCE = 1;   // Minimum SOL to keep in reward wallet
-const MIN_REWARD_AMOUNT = 0.001; // Minimum reward amount per recipient
+// Load configuration
+const configPath = path.join(__dirname, '..', 'config', 'distribute-reward-toptotal.json');
+const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+const { RPC_URL, MIN_REWARD_BALANCE, MIN_KEEP_BALANCE, MIN_REWARD_AMOUNT } = config;
 
 // Database paths
 const rewardsDbPath = path.join(__dirname, 'data', 'rewards.db');

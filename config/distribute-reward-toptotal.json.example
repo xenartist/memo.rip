@@ -1,0 +1,6 @@
+{
+    "RPC_URL": "RPC_URL",
+    "MIN_REWARD_BALANCE": 5,
+    "MIN_KEEP_BALANCE": 1,
+    "MIN_REWARD_AMOUNT": 0.001
+}
