@@ -2,6 +2,8 @@
 /node_modules
 package-lock.json
 *.db
+data/*.db
+data/burns.db
 config/rpc.json
 reward/withdraw-vote-local.js
 reward/withdraw-vote-local.sh
