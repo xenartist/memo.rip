@@ -2,14 +2,18 @@ import { Connection, PublicKey, Keypair, Transaction, VoteProgram } from '@solan
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-// Configuration
-const VOTE_ADDRESS = "VOTE_ADDRESS";
-const REWARD_ADDRESS = "REWARD_ADDRESS";
-const RATIO = 0.9;  // 90% to reward address
-const RPC_URL = "RPC_URL";
-const MIN_BALANCE = 0.03;
-const LAMPORTS_PER_SOL = 1000000000;
+// Get config file path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const configPath = path.join(__dirname, '..', 'config', 'withdraw-vote.json');
+
+// Load configuration
+const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+const { VOTE_ADDRESS, REWARD_ADDRESS, RATIO, RPC_URL, MIN_BALANCE, LAMPORTS_PER_SOL } = config;
 
 async function withdrawVoteRewards() {
     try {

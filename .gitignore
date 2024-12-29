@@ -5,3 +5,4 @@ package-lock.json
 config/rpc.json
 reward/withdraw-vote-local.js
 reward/withdraw-vote-local.sh
+config/withdraw-vote.json
