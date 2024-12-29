@@ -3,3 +3,5 @@
 package-lock.json
 *.db
 config/rpc.json
+reward/withdraw-vote-local.js
+reward/withdraw-vote-local.sh
