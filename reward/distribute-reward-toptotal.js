@@ -11,7 +11,7 @@ const { RPC_URL, MIN_REWARD_BALANCE, MIN_KEEP_BALANCE, MIN_REWARD_AMOUNT } = con
 
 // Database paths
 const rewardsDbPath = path.join(__dirname, 'data', 'rewards.db');
-const burnsDbPath = path.join(__dirname, 'data', 'backup', 'burns.db');
+const burnsDbPath = path.join(__dirname, 'data', 'backup-readonly', 'burns.db');
 
 // Check if database directory exists
 if (!fs.existsSync(path.join(__dirname, 'data'))) {
