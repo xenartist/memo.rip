@@ -13,12 +13,10 @@ const configPath = path.join(__dirname, '..', 'config', 'withdraw-vote.json');
 // Load configuration
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
-const { VOTE_ADDRESS, REWARD_ADDRESS, RATIO, RPC_URL, MIN_BALANCE, LAMPORTS_PER_SOL } = config;
-
 async function withdrawVoteRewards() {
     try {
         // Initialize connection
-        const connection = new Connection(RPC_URL);
+        const connection = new Connection(config.RPC_URL);
 
         // Load withdrawer keypair
         const withdrawerPath = path.join(os.homedir(), '.config', 'solana', 'withdrawer.json');
@@ -27,23 +25,23 @@ async function withdrawVoteRewards() {
         );
 
         // Convert addresses to PublicKey
-        const voteAccountPubkey = new PublicKey(VOTE_ADDRESS);
-        const rewardAddressPubkey = new PublicKey(REWARD_ADDRESS);
+        const voteAccountPubkey = new PublicKey(config.VOTE_ADDRESS);
+        const rewardAddressPubkey = new PublicKey(config.REWARD_ADDRESS);
 
         // Get vote account balance
         const voteBalance = await connection.getBalance(voteAccountPubkey);
-        const voteBalanceInSol = voteBalance / LAMPORTS_PER_SOL;
+        const voteBalanceInSol = voteBalance / config.LAMPORTS_PER_SOL;
 
         // Calculate withdrawable balance with 3 decimal places
-        const withdrawableBalance = Number((voteBalanceInSol - MIN_BALANCE).toFixed(3));
+        const withdrawableBalance = Number((voteBalanceInSol - config.MIN_BALANCE).toFixed(3));
 
         // Calculate amounts with 3 decimal places
-        const rewardAmount = Number((withdrawableBalance * RATIO).toFixed(3));
+        const rewardAmount = Number((withdrawableBalance * config.RATIO).toFixed(3));
         const remainingAmount = Number((withdrawableBalance - rewardAmount).toFixed(3));
 
         // Convert back to lamports
-        const rewardLamports = Math.floor(rewardAmount * LAMPORTS_PER_SOL);
-        const remainingLamports = Math.floor(remainingAmount * LAMPORTS_PER_SOL);
+        const rewardLamports = Math.floor(rewardAmount * config.LAMPORTS_PER_SOL);
+        const remainingLamports = Math.floor(remainingAmount * config.LAMPORTS_PER_SOL);
 
         // Show initial state
         console.log("Initial state:");
@@ -112,9 +110,9 @@ async function withdrawVoteRewards() {
         console.log("Second withdrawal successful");
 
         // Show final balances
-        const finalVoteBalance = await connection.getBalance(voteAccountPubkey) / LAMPORTS_PER_SOL;
-        const finalRewardBalance = await connection.getBalance(rewardAddressPubkey) / LAMPORTS_PER_SOL;
-        const finalWithdrawerBalance = await connection.getBalance(withdrawerKeypair.publicKey) / LAMPORTS_PER_SOL;
+        const finalVoteBalance = await connection.getBalance(voteAccountPubkey) / config.LAMPORTS_PER_SOL;
+        const finalRewardBalance = await connection.getBalance(rewardAddressPubkey) / config.LAMPORTS_PER_SOL;
+        const finalWithdrawerBalance = await connection.getBalance(withdrawerKeypair.publicKey) / config.LAMPORTS_PER_SOL;
 
         console.log("\nFinal state:");
         console.log(`Vote account balance: ${finalVoteBalance} SOL`);
@@ -127,4 +125,52 @@ async function withdrawVoteRewards() {
     }
 }
 
-withdrawVoteRewards(); 
+async function getNextRunTime(scheduleTime) {
+    const [hours, minutes, seconds] = scheduleTime.split(':').map(Number);
+    
+    const now = new Date();
+    let next = new Date(now);
+    
+    next.setUTCHours(hours, minutes, seconds, 0);
+    
+    if (now >= next) {
+        next.setUTCDate(next.getUTCDate() + 1);
+    }
+    
+    return next;
+}
+
+async function startWithdrawService() {
+    console.log(`Starting reward distribution service.`);
+    console.log(`Scheduled for ${config.SCHEDULE_UTC_TIME} UTC daily`);
+
+    const runScheduledTask = async () => {
+        try {
+            const now = new Date();
+            console.log(`\n${now.toISOString()} - Starting scheduled distribution`);
+            await withdrawVoteRewards();
+            
+            const nextRun = await getNextRunTime(config.SCHEDULE_UTC_TIME);
+            const delay = nextRun.getTime() - Date.now();
+            
+            setTimeout(runScheduledTask, delay);
+            
+            console.log(`Next run scheduled for: ${nextRun.toISOString()}`);
+        } catch (error) {
+            console.error('Error in scheduled task:', error);
+            setTimeout(runScheduledTask, 60 * 60 * 1000);
+        }
+    };
+
+    const firstRun = await getNextRunTime(config.SCHEDULE_UTC_TIME);
+    const initialDelay = firstRun.getTime() - Date.now();
+    
+    console.log(`First run scheduled for: ${firstRun.toISOString()}`);
+    setTimeout(runScheduledTask, initialDelay);
+}
+
+// Start the service
+startWithdrawService().catch(error => {
+    console.error("Fatal error:", error);
+    process.exit(1);
+}); 
