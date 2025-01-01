@@ -149,16 +149,19 @@ export class Leaderboard {
 
     async init() {
         try {
-            const [topBurns, latestBurns, topTotalBurns] = await Promise.all([
+            const [topBurns, latestBurns, topTotalBurns, totalRewards] = await Promise.all([
                 this.fetchTopBurns(),
                 this.fetchLatestBurns(),
-                this.fetchTopTotalBurns()
+                this.fetchTopTotalBurns(),
+                this.fetchTotalRewards()
             ]);
             this.topTotalBurnsData = topTotalBurns;
+            this.totalRewardsAmount = totalRewards;
             this.updateRotatingBurn();
             this.renderTopBurns(topBurns);
             this.renderLatestBurns(latestBurns);
             this.renderTopTotalBurns(topTotalBurns);
+            this.updateTotalRewardsDisplay();
         } catch (error) {
             console.error('Failed to initialize leaderboards:', error);
         }
@@ -204,6 +207,20 @@ export class Leaderboard {
         } catch (error) {
             console.error('Error fetching top total burns:', error);
             throw error;
+        }
+    }
+
+    async fetchTotalRewards() {
+        try {
+            const response = await fetch('/api/total-rewards');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data.totalRewards;
+        } catch (error) {
+            console.error('Error fetching total rewards:', error);
+            return 0;
         }
     }
 
@@ -281,7 +298,7 @@ export class Leaderboard {
                     <span class="text-gray-500 text-base">solXEN</span>
                     <span class="text-blue-600 text-base">(${percentage}%)</span>
                     ${burner.totalRewards ? `
-                        <span class="text-green-600 text-base">+${Number(burner.totalRewards).toFixed(3)} XN (TESTING/FAKE)</span>
+                        <span class="text-green-600 text-base">${Number(burner.totalRewards).toFixed(3)} XN (TESTING/FAKE)</span>
                     ` : ''}
                 </div>
             `;
@@ -457,5 +474,39 @@ export class Leaderboard {
 
     formatTimestamp(timestamp) {
         return new Date(timestamp * 1000).toLocaleString();
+    }
+
+    updateTotalRewardsDisplay() {
+        // update main page
+        const mainTotalRewardsSpan = document.createElement('span');
+        mainTotalRewardsSpan.className = 'text-green-600 text-sm ml-2';
+        mainTotalRewardsSpan.textContent = `(Rewards: ${Math.floor(this.totalRewardsAmount)} XN [TESTING/FAKE])`;
+        
+        const mainTitle = document.querySelector('.top-total-burns-title');
+        if (mainTitle) {
+            // check if already has rewards, if so, update, otherwise add
+            const existingRewards = mainTitle.querySelector('.text-green-600');
+            if (existingRewards) {
+                existingRewards.textContent = mainTotalRewardsSpan.textContent;
+            } else {
+                mainTitle.appendChild(mainTotalRewardsSpan);
+            }
+        }
+
+        // update modal title
+        const modalTotalRewardsSpan = document.createElement('span');
+        modalTotalRewardsSpan.className = 'text-green-600 text-sm ml-2';
+        modalTotalRewardsSpan.textContent = `(Total Rewards: ${Math.floor(this.totalRewardsAmount)} XN [TESTING/FAKE])`;
+        
+        // check if already has rewards, if so, update, otherwise add
+        const modalTitle = document.querySelector('#top-total-burns-modal .modal-title');
+        if (modalTitle) {
+            const existingModalRewards = modalTitle.querySelector('.text-green-600');
+            if (existingModalRewards) {
+                existingModalRewards.textContent = modalTotalRewardsSpan.textContent;
+            } else {
+                modalTitle.appendChild(modalTotalRewardsSpan);
+            }
+        }
     }
 }

@@ -192,12 +192,22 @@ app.get('/api/top-total-burns', async (req, res) => {
     }
 });
 
+app.get('/api/total-rewards', async (req, res) => {
+    try {
+        const totalRewards = await memoCache.getTotalRewards(db);
+        res.json({ totalRewards });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 class MemoCache {
     constructor() {
         this.topAmountCache = []; // top 10 burns
         this.latestCache = [];  // latest 10 burns
         this.topTotalBurnsCache = []; // top 69 burns
         this.totalBurnCache = 0; // total burn amount
+        this.totalRewardsCache = 0; // total rewards amount
         this.lastUpdateTime = 0;     
         this.CACHE_DURATION = 5 * 60 * 1000;  // cache duration 5 minutes
     }
@@ -261,7 +271,7 @@ class MemoCache {
             });
 
             // Get rewards info for these burners
-            const rewardsInfo = await getRewardsInfo(topTotalBurns);
+            const { rewardsInfo, totalRewards } = await getRewardsInfo(topTotalBurns);
             
             // Create rewards map for quick lookup
             const rewardsMap = new Map(
@@ -279,6 +289,7 @@ class MemoCache {
             this.latestCache = latest;
             this.topTotalBurnsCache = mergedData;
             this.totalBurnCache = totalBurn.amount;
+            this.totalRewardsCache = totalRewards;
             this.lastUpdateTime = Date.now();
             
             console.log('Cache updated:', {
@@ -286,8 +297,11 @@ class MemoCache {
                 latest: latest.length,
                 totalBurn: totalBurn.amount,
                 topTotalBurns: topTotalBurns.length,
+                totalRewards: totalRewards,
                 time: new Date().toISOString()
             });
+
+            console.log(`Total rewards cached: ${totalRewards}`);
         } catch (error) {
             console.error('Cache update failed:', error);
             throw error;
@@ -328,6 +342,13 @@ class MemoCache {
 
     async invalidateCache(db) {
         await this.updateCache(db);
+    }
+
+    async getTotalRewards(db) {
+        if (this.needsUpdate()) {
+            await this.updateCache(db);
+        }
+        return this.totalRewardsCache;
     }
 }
 
@@ -518,61 +539,79 @@ async function getRewardsInfo(burners) {
     try {
         await fs.access(rewardsDbPath);
     } catch (error) {
-        // if rewards.db doesn't exist, return default values
-        return burners.map(burner => ({
-            address: burner.burner,
-            total_rewards: 0,
-            reward_count: 0
-        }));
+        return {
+            rewardsInfo: burners.map(burner => ({
+                address: burner.burner,
+                total_rewards: 0,
+                reward_count: 0
+            })),
+            totalRewards: 0
+        };
     }
 
     return new Promise((resolve, reject) => {
         const db = new sqlite3.Database(rewardsDbPath, sqlite3.OPEN_READONLY, (err) => {
             if (err) {
                 console.error('Error opening rewards database:', err);
-                resolve(burners.map(burner => ({
-                    address: burner.burner,
-                    total_rewards: 0,
-                    reward_count: 0
-                })));
-                return;
-            }
-
-            const query = `
-                SELECT burner,
-                       SUM(amount) as total_rewards,
-                       COUNT(*) as reward_count
-                FROM rewards
-                WHERE burner IN (${burners.map(() => '?').join(',')})
-                GROUP BY burner
-            `;
-
-            db.all(query, burners.map(b => b.burner), (err, rows) => {
-                db.close();
-                
-                if (err) {
-                    console.error('Error querying rewards:', err);
-                    resolve(burners.map(burner => ({
+                resolve({
+                    rewardsInfo: burners.map(burner => ({
                         address: burner.burner,
                         total_rewards: 0,
                         reward_count: 0
-                    })));
-                    return;
+                    })),
+                    totalRewards: 0
+                });
+                return;
+            }
+
+            // get total rewards
+            db.get("SELECT CAST(SUM(amount) AS INTEGER) as total FROM rewards", [], (err, totalRow) => {
+                if (err) {
+                    console.error('Error getting total rewards:', err);
+                    totalRow = { total: 0 };
                 }
 
-                // Create a map for quick lookup
-                const rewardsMap = new Map(
-                    rows.map(row => [row.burner, row])
-                );
+                // get rewards for each burner
+                const query = `
+                    SELECT burner,
+                           SUM(amount) as total_rewards,
+                           COUNT(*) as reward_count
+                    FROM rewards
+                    WHERE burner IN (${burners.map(() => '?').join(',')})
+                    GROUP BY burner
+                `;
 
-                // Merge with burners list
-                const result = burners.map(burner => ({
-                    address: burner.burner,
-                    total_rewards: (rewardsMap.get(burner.burner)?.total_rewards || 0),
-                    reward_count: (rewardsMap.get(burner.burner)?.reward_count || 0)
-                }));
+                db.all(query, burners.map(b => b.burner), (err, rows) => {
+                    db.close();
+                    
+                    if (err) {
+                        console.error('Error querying rewards:', err);
+                        resolve({
+                            rewardsInfo: burners.map(burner => ({
+                                address: burner.burner,
+                                total_rewards: 0,
+                                reward_count: 0
+                            })),
+                            totalRewards: 0
+                        });
+                        return;
+                    }
 
-                resolve(result);
+                    const rewardsMap = new Map(
+                        rows.map(row => [row.burner, row])
+                    );
+
+                    const result = {
+                        rewardsInfo: burners.map(burner => ({
+                            address: burner.burner,
+                            total_rewards: (rewardsMap.get(burner.burner)?.total_rewards || 0),
+                            reward_count: (rewardsMap.get(burner.burner)?.reward_count || 0)
+                        })),
+                        totalRewards: totalRow.total || 0
+                    };
+
+                    resolve(result);
+                });
             });
         });
     });
