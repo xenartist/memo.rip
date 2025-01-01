@@ -244,6 +244,21 @@ export class Leaderboard {
         const container = document.getElementById('top-total-burns-list');
         container.innerHTML = '';
 
+        // Add title row
+        const titleRow = document.createElement('div');
+        titleRow.className = 'flex items-center justify-between p-2 border-b bg-gray-100 font-semibold';
+        titleRow.innerHTML = `
+            <div class="flex items-center gap-3">
+                <span class="text-gray-600 text-base w-12">Rank</span>
+                <span class="text-gray-600 text-base">Burner</span>
+            </div>
+            <div class="text-right flex items-center gap-4">
+                <span class="text-gray-600 text-base">Burned solXEN</span>
+                <span class="text-gray-600 text-base">Rewarded XN (TESTING/FAKE)</span>
+            </div>
+        `;
+        container.appendChild(titleRow);
+
         // Calculate total amount of top 69 burners
         const totalAmount = burners.reduce((sum, burner) => sum + Number(burner.totalAmount), 0);
 
@@ -265,6 +280,9 @@ export class Leaderboard {
                     <span class="text-red-600 font-bold text-lg">${burner.totalAmount}</span>
                     <span class="text-gray-500 text-base">solXEN</span>
                     <span class="text-blue-600 text-base">(${percentage}%)</span>
+                    ${burner.totalRewards ? `
+                        <span class="text-green-600 text-base">+${Number(burner.totalRewards).toFixed(3)} XN (TESTING/FAKE)</span>
+                    ` : ''}
                 </div>
             `;
             
