@@ -182,7 +182,9 @@ app.get('/api/top-total-burns', async (req, res) => {
             rank: index + 1,
             address: burner.burner,
             totalAmount: Math.floor(burner.total_amount / 1_000_000), // Convert to whole numbers
-            burnCount: burner.burn_count
+            burnCount: burner.burn_count,
+            totalRewards: burner.total_rewards,
+            rewardCount: burner.reward_count
         }));
         res.json(formattedBurns);
     } catch (error) {
@@ -258,9 +260,24 @@ class MemoCache {
                 });
             });
 
+            // Get rewards info for these burners
+            const rewardsInfo = await getRewardsInfo(topTotalBurns);
+            
+            // Create rewards map for quick lookup
+            const rewardsMap = new Map(
+                rewardsInfo.map(info => [info.address, info])
+            );
+            
+            // Merge burns and rewards data
+            const mergedData = topTotalBurns.map(burn => ({
+                ...burn,
+                total_rewards: rewardsMap.get(burn.burner)?.total_rewards || 0,
+                reward_count: rewardsMap.get(burn.burner)?.reward_count || 0
+            }));
+
             this.topAmountCache = topAmount;
             this.latestCache = latest;
-            this.topTotalBurnsCache = topTotalBurns;
+            this.topTotalBurnsCache = mergedData;
             this.totalBurnCache = totalBurn.amount;
             this.lastUpdateTime = Date.now();
             
@@ -493,6 +510,72 @@ function parseBurnTransactionData(transaction) {
         console.error('Error parsing transaction data:', error);
         throw error;
     }
+}
+
+async function getRewardsInfo(burners) {
+    const rewardsDbPath = path.join(__dirname, 'data', 'backup-readonly', 'rewards.db');
+    
+    try {
+        await fs.access(rewardsDbPath);
+    } catch (error) {
+        // if rewards.db doesn't exist, return default values
+        return burners.map(burner => ({
+            address: burner.burner,
+            total_rewards: 0,
+            reward_count: 0
+        }));
+    }
+
+    return new Promise((resolve, reject) => {
+        const db = new sqlite3.Database(rewardsDbPath, sqlite3.OPEN_READONLY, (err) => {
+            if (err) {
+                console.error('Error opening rewards database:', err);
+                resolve(burners.map(burner => ({
+                    address: burner.burner,
+                    total_rewards: 0,
+                    reward_count: 0
+                })));
+                return;
+            }
+
+            const query = `
+                SELECT burner,
+                       SUM(amount) as total_rewards,
+                       COUNT(*) as reward_count
+                FROM rewards
+                WHERE burner IN (${burners.map(() => '?').join(',')})
+                GROUP BY burner
+            `;
+
+            db.all(query, burners.map(b => b.burner), (err, rows) => {
+                db.close();
+                
+                if (err) {
+                    console.error('Error querying rewards:', err);
+                    resolve(burners.map(burner => ({
+                        address: burner.burner,
+                        total_rewards: 0,
+                        reward_count: 0
+                    })));
+                    return;
+                }
+
+                // Create a map for quick lookup
+                const rewardsMap = new Map(
+                    rows.map(row => [row.burner, row])
+                );
+
+                // Merge with burners list
+                const result = burners.map(burner => ({
+                    address: burner.burner,
+                    total_rewards: (rewardsMap.get(burner.burner)?.total_rewards || 0),
+                    reward_count: (rewardsMap.get(burner.burner)?.reward_count || 0)
+                }));
+
+                resolve(result);
+            });
+        });
+    });
 }
 
 app.listen(port, () => {
