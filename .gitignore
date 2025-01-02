@@ -3,8 +3,7 @@
 package-lock.json
 *.db
 config/rpc.json
-reward/withdraw-vote-local.js
-reward/withdraw-vote-local.sh
 config/withdraw-vote.json
 config/distribute-reward-toptotal.json
-data/sync_burns-db.sh
+sync/sync_burns-db.sh
+sync/sync_rewards-db.sh
