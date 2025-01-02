@@ -141,13 +141,13 @@ async function getNextRunTime(scheduleTime) {
 }
 
 async function startWithdrawService() {
-    console.log(`Starting reward distribution service.`);
+    console.log(`Starting withdraw vote service.`);
     console.log(`Scheduled for ${config.SCHEDULE_UTC_TIME} UTC daily`);
 
     const runScheduledTask = async () => {
         try {
             const now = new Date();
-            console.log(`\n${now.toISOString()} - Starting scheduled distribution`);
+            console.log(`\n${now.toISOString()} - Starting scheduled withdraw`);
             await withdrawVoteRewards();
             
             const nextRun = await getNextRunTime(config.SCHEDULE_UTC_TIME);
