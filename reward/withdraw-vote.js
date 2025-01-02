@@ -47,8 +47,8 @@ async function withdrawVoteRewards() {
         console.log("Initial state:");
         console.log(`Vote account balance: ${voteBalanceInSol} SOL`);
         console.log(`Withdrawable balance: ${withdrawableBalance} SOL`);
-        console.log(`Amount to reward address (90%): ${rewardAmount} SOL`);
-        console.log(`Amount to withdrawer (10%): ${remainingAmount} SOL`);
+        console.log(`Amount to reward address (${config.RATIO * 100}%): ${rewardAmount} SOL`);
+        console.log(`Amount to withdrawer (${(1 - config.RATIO) * 100}%): ${remainingAmount} SOL`);
 
         // First withdrawal: to reward address
         console.log(`\nWithdrawing ${rewardAmount} SOL to reward address...`);
