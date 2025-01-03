@@ -145,6 +145,9 @@ export class WalletManager {
             this.wallet = wallet; // Store the connected wallet instance
             this.walletState.connected = true;
             this.walletState.address = publicKey.toString();
+            this.walletState.provider = wallet.isSolflare ? 'Solflare' : 
+                                       wallet.isPhantom ? 'Phantom' : 
+                                       wallet.isBackpack ? 'Backpack' : 'Unknown';
             
             this.updateButtonState();
             
@@ -152,7 +155,7 @@ export class WalletManager {
             document.querySelector('.wallet-dropdown').classList.add('hidden');
             
             console.log('Connected to wallet:', {
-                name: wallet.isSolflare ? 'Solflare' : wallet.isPhantom ? 'Phantom' : 'Backpack',
+                name: this.walletState.provider,
                 address: this.walletState.address
             });
             
@@ -185,23 +188,28 @@ export class WalletManager {
     detectWallet() {
         console.log('Checking wallets:', {
             phantom: window.phantom?.solana,
-            solflare: window.solflare
+            solflare: window.solflare,
+            backpack: window.backpack
         });
-        // Phantom wallet
+
+        // check if wallet is connected
+        if (this.wallet) {
+            console.log('Using previously connected wallet:', this.walletState.provider);
+            return this.wallet;
+        }
+
         if (window.phantom?.solana?.isPhantom) {
             return window.phantom.solana;
         }
-        
-        // Solflare wallet
+
         if (window.solflare?.isSolflare) {
             return window.solflare;
         }
 
-        // Backpack wallet
         if (window.backpack?.isBackpack) {
             return window.backpack;
         }
-
+        
         // general solana wallet
         if (window.solana?.isConnected) {
             return window.solana;
@@ -220,5 +228,14 @@ export class WalletManager {
             button.textContent = 'Connect Wallet';
             button.classList.remove('connected');
         }
+    }
+
+    async signAndSendTransaction(transaction) {
+        if (!this.wallet) {
+            throw new Error('No wallet connected');
+        }
+        
+        console.log(`Using ${this.walletState.provider} wallet for transaction`);
+        return await this.wallet.signAndSendTransaction(transaction);
     }
 }
