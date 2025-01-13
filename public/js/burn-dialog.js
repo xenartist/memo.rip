@@ -108,9 +108,9 @@ export class BurnDialog {
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white text-center">IMPORTANT NOTICE</h3>
                         <div class="space-y-4 text-gray-600 dark:text-gray-300">
                             <div>
-                                <h4 class="font-semibold mb-1">Source and Distribution of XN Rewards</h4>
-                                <p>The XN rewards distributed by memo.rip are exclusively derived from the Voting Commission Fee (XN) of the memo.rip validator node. These rewards are periodically allocated based on leaderboard rankings.</p>
-                                <p>Please note that these rewards are independent of the solXEN/XEN core team and are not authorized or endorsed by them.</p>
+                                <h4 class="font-semibold mb-1">Source and Distribution of XN Donations</h4>
+                                <p>The XN donations distributed by memo.rip are exclusively derived from the Voting Commission Fee (XN) of the memo.rip validator node. These donations are periodically allocated based on leaderboard rankings.</p>
+                                <p>Please note that these donations are independent of the solXEN/XEN core team and are not authorized or endorsed by them.</p>
                             </div>
                             
                             <div>

@@ -271,7 +271,7 @@ export class Leaderboard {
             </div>
             <div class="text-right flex items-center gap-4">
                 <span class="text-gray-600 text-base">Burned solXEN</span>
-                <span class="text-gray-600 text-base">Rewarded XN (TESTING/FAKE)</span>
+                <span class="text-gray-600 text-base">Donated XN (TESTING/FAKE)</span>
             </div>
         `;
         container.appendChild(titleRow);
@@ -480,7 +480,7 @@ export class Leaderboard {
         // update main page
         const mainTotalRewardsSpan = document.createElement('span');
         mainTotalRewardsSpan.className = 'text-green-600 text-sm ml-2';
-        mainTotalRewardsSpan.textContent = `(Rewards: ${Math.floor(this.totalRewardsAmount)} XN [TESTING/FAKE])`;
+        mainTotalRewardsSpan.textContent = `(Donations: ${Math.floor(this.totalRewardsAmount)} XN [TESTING/FAKE])`;
         
         const mainTitle = document.querySelector('.top-total-burns-title');
         if (mainTitle) {
@@ -496,7 +496,7 @@ export class Leaderboard {
         // update modal title
         const modalTotalRewardsSpan = document.createElement('span');
         modalTotalRewardsSpan.className = 'text-green-600 text-sm ml-2';
-        modalTotalRewardsSpan.textContent = `(Total Rewards: ${Math.floor(this.totalRewardsAmount)} XN [TESTING/FAKE])`;
+        modalTotalRewardsSpan.textContent = `(Total Donations: ${Math.floor(this.totalRewardsAmount)} XN [TESTING/FAKE])`;
         
         // check if already has rewards, if so, update, otherwise add
         const modalTitle = document.querySelector('#top-total-burns-modal .modal-title');
