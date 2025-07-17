@@ -108,17 +108,6 @@ export class BurnDialog {
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white text-center">IMPORTANT NOTICE</h3>
                         <div class="space-y-4 text-gray-600 dark:text-gray-300">
                             <div>
-                                <h4 class="font-semibold mb-1">Source and Distribution of XN Donations</h4>
-                                <p>The XN donations distributed by memo.rip are exclusively derived from the Voting Commission Fee (XN) of the memo.rip validator node. These donations are periodically allocated based on leaderboard rankings.</p>
-                                <p>Please note that these donations are independent of the solXEN/XEN core team and are not authorized or endorsed by them.</p>
-                            </div>
-                            
-                            <div>
-                                <h4 class="font-semibold mb-1">Testnet Token Disclaimer</h4>
-                                <p>The XN tokens displayed on this website are Xolana testnet tokens with no monetary value or price. Users are strongly advised not to base any financial decisions on them.</p>
-                            </div>
-                            
-                            <div>
                                 <h4 class="font-semibold mb-1">Content Source and Responsibility</h4>
                                 <p>All content displayed on this website is sourced from decentralized on-chain data from the Solana blockchain or third-party image hyperlinks. The website itself does not store any content. If you identify infringing information, please contact us, and we will take steps to block it on the frontend.</p>
                             </div>
@@ -126,11 +115,6 @@ export class BurnDialog {
                             <div>
                                 <h4 class="font-semibold mb-1">User Privacy Protection</h4>
                                 <p>Memo information created on memo.rip is public and stored in plain text on the Solana blockchain. Users are advised to protect their privacy and avoid sharing sensitive or confidential information.</p>
-                            </div>
-                            
-                            <div>
-                                <h4 class="font-semibold mb-1">Official XN Airdrop Statement</h4>
-                                <p>The official XN airdrop from solXEN/XEN core team is exclusively distributed through the HASH mining process. For detailed information, please refer to the official documentation: <a href="https://docs.solxen.io/#mining" target="_blank" class="text-blue-500 hover:underline">https://docs.solxen.io/#mining</a>.</p>
                             </div>
                             
                             <div>
