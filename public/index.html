@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>memo.rip - memories on solana -> reborn on X1</title>
+    <title>memo.rip - memories on solana</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link href="https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
@@ -29,7 +29,7 @@
             <div class="container mx-auto px-4 h-16 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <img src="img/memo-rip-logo.png" alt="memo.rip logo" class="h-16 w-16">
-                    <h1 class="text-2xl font-bold text-gray-900">memo.rip - memories on solana -> reborn on X1</h1>
+                    <h1 class="text-2xl font-bold text-gray-900">memo.rip - memories on solana</h1>
                 </div>
                 <div id="wallet-container"></div>
             </div>
@@ -48,7 +48,7 @@
                         <span>solXEN Burn Overview</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame text-red-500"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
                     </h2>
-                    <div class="grid grid-cols-3 gap-4">
+                    <div class="grid grid-cols-2 gap-4">
                         <div class="p-4 rounded-lg bg-gray-50">
                             <label class="text-sm font-medium text-gray-500">Total Burn</label>
                             <div id="total-burn" class="text-2xl font-bold mt-1">Loading...</div>
@@ -56,19 +56,6 @@
                         <div class="p-4 rounded-lg bg-gray-50">
                             <label class="text-sm font-medium text-gray-500">Burn Percentage</label>
                             <div id="burn-percentage" class="text-2xl font-bold mt-1">Loading...</div>
-                        </div>
-                        <div class="p-4 rounded-lg bg-gray-50">
-                            <div class="mb-2">
-                                <label class="text-sm font-medium text-gray-500 top-total-burns-title">69 Top Total Burners</label>
-                            </div>
-                            <div id="rotating-total-burn" class="h-6 font-bold overflow-hidden">
-                                <!-- Will be populated by JavaScript -->
-                            </div>
-                            <div class="mt-2 flex justify-end">
-                                <button id="show-all-total-burns" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                    check more >>>
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>

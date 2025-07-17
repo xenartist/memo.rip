@@ -1,10 +1,5 @@
 export class Leaderboard {
     constructor() {
-        this.topTotalBurnsData = [];
-        this.currentBurnIndex = 0;
-        this.initializeModalHandlers();
-        this.startRotation();
-
         this.shuffledImages = [];
         this.currentIndex = 0;
 
@@ -70,98 +65,14 @@ export class Leaderboard {
         }
     }
 
-    initializeModalHandlers() {
-        document.getElementById('show-all-total-burns').addEventListener('click', () => {
-            document.getElementById('top-total-burns-modal').classList.remove('hidden');
-        });
-
-        document.getElementById('close-total-burns-modal').addEventListener('click', () => {
-            document.getElementById('top-total-burns-modal').classList.add('hidden');
-        });
-
-        document.getElementById('top-total-burns-modal').addEventListener('click', (e) => {
-            if (e.target === e.currentTarget) {
-                e.target.classList.add('hidden');
-            }
-        });
-    }
-
-    startRotation() {
-        setInterval(() => {
-            if (this.topTotalBurnsData.length > 0) {
-                this.currentBurnIndex = (this.currentBurnIndex + 1) % this.topTotalBurnsData.length;
-                this.updateRotatingBurn();
-            }
-        }, 5000);
-    }
-
-    updateRotatingBurn() {
-        const burn = this.topTotalBurnsData[this.currentBurnIndex];
-        const totalAmount = this.topTotalBurnsData.reduce((sum, burner) => sum + Number(burner.totalAmount), 0);
-        const percentage = ((Number(burn.totalAmount) / totalAmount) * 100).toFixed(2);
-        const container = document.getElementById('rotating-total-burn');
-        const formattedAddress = `${burn.address.slice(0, 6)}****`;
-        
-        // Create new content
-        const newContent = `
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <span class="text-gray-500">#${burn.rank}</span>
-                    <span class="font-mono">${formattedAddress}</span>
-                </div>
-                <div>
-                    <span class="text-red-600 font-bold">${burn.totalAmount}</span>
-                    <span class="text-blue-600">(${percentage}%)</span>
-                </div>
-            </div>
-        `;
-
-        // Create temporary container with both old and new content
-        const wrapper = document.createElement('div');
-        wrapper.className = 'relative h-6 overflow-hidden'; // Fixed height container
-        
-        // Add current content (if exists) and new content
-        wrapper.innerHTML = `
-            <div class="absolute w-full transition-transform duration-500 ease-in-out">
-                ${container.innerHTML}
-            </div>
-            <div class="absolute w-full transition-transform duration-500 ease-in-out translate-y-full">
-                ${newContent}
-            </div>
-        `;
-
-        // Replace container content
-        container.innerHTML = '';
-        container.appendChild(wrapper);
-
-        // Trigger animation after a small delay
-        setTimeout(() => {
-            const [oldContent, newContent] = wrapper.children;
-            oldContent.style.transform = 'translateY(-100%)';
-            newContent.style.transform = 'translateY(0)';
-        }, 50);
-
-        // Clean up after animation
-        setTimeout(() => {
-            container.innerHTML = newContent;
-        }, 500);
-    }
-
     async init() {
         try {
-            const [topBurns, latestBurns, topTotalBurns, totalRewards] = await Promise.all([
+            const [topBurns, latestBurns] = await Promise.all([
                 this.fetchTopBurns(),
                 this.fetchLatestBurns(),
-                this.fetchTopTotalBurns(),
-                this.fetchTotalRewards()
             ]);
-            this.topTotalBurnsData = topTotalBurns;
-            this.totalRewardsAmount = totalRewards;
-            this.updateRotatingBurn();
             this.renderTopBurns(topBurns);
             this.renderLatestBurns(latestBurns);
-            this.renderTopTotalBurns(topTotalBurns);
-            this.updateTotalRewardsDisplay();
         } catch (error) {
             console.error('Failed to initialize leaderboards:', error);
         }
@@ -197,33 +108,6 @@ export class Leaderboard {
         }
     }
 
-    async fetchTopTotalBurns() {
-        try {
-            const response = await fetch('/api/top-total-burns');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('Error fetching top total burns:', error);
-            throw error;
-        }
-    }
-
-    async fetchTotalRewards() {
-        try {
-            const response = await fetch('/api/total-rewards');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            return data.totalRewards;
-        } catch (error) {
-            console.error('Error fetching total rewards:', error);
-            return 0;
-        }
-    }
-
     renderTopBurns(burns) {
         const container = document.getElementById('top-burns-list');
         container.innerHTML = '';
@@ -254,56 +138,6 @@ export class Leaderboard {
                 isLatest: true
             });
             container.appendChild(note);
-        });
-    }
-
-    renderTopTotalBurns(burners) {
-        const container = document.getElementById('top-total-burns-list');
-        container.innerHTML = '';
-
-        // Add title row
-        const titleRow = document.createElement('div');
-        titleRow.className = 'flex items-center justify-between p-2 border-b bg-gray-100 font-semibold';
-        titleRow.innerHTML = `
-            <div class="flex items-center gap-3">
-                <span class="text-gray-600 text-base w-12">Rank</span>
-                <span class="text-gray-600 text-base">Burner</span>
-            </div>
-            <div class="text-right flex items-center gap-4">
-                <span class="text-gray-600 text-base">Burned solXEN</span>
-                <span class="text-gray-600 text-base">Donated XN (TESTING/FAKE)</span>
-            </div>
-        `;
-        container.appendChild(titleRow);
-
-        // Calculate total amount of top 69 burners
-        const totalAmount = burners.reduce((sum, burner) => sum + Number(burner.totalAmount), 0);
-
-        burners.forEach(burner => {
-            const div = document.createElement('div');
-            div.className = 'flex items-center justify-between p-2 border-b';
-            
-            // Format address: first 6 chars + ****
-            const formattedAddress = `${burner.address.slice(0, 6)}****`;
-
-            const percentage = ((Number(burner.totalAmount) / totalAmount) * 100).toFixed(2);
-            
-            div.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <span class="text-gray-500 text-lg w-12">#${burner.rank}</span>
-                    <span class="font-mono text-base">${formattedAddress}</span>
-                </div>
-                <div class="text-right flex items-center gap-4">
-                    <span class="text-red-600 font-bold text-lg">${burner.totalAmount}</span>
-                    <span class="text-gray-500 text-base">solXEN</span>
-                    <span class="text-blue-600 text-base">(${percentage}%)</span>
-                    ${burner.totalRewards ? `
-                        <span class="text-green-600 text-base">${Number(burner.totalRewards).toFixed(3)} XN (TESTING/FAKE)</span>
-                    ` : ''}
-                </div>
-            `;
-            
-            container.appendChild(div);
         });
     }
 
@@ -474,39 +308,5 @@ export class Leaderboard {
 
     formatTimestamp(timestamp) {
         return new Date(timestamp * 1000).toLocaleString();
-    }
-
-    updateTotalRewardsDisplay() {
-        // update main page
-        const mainTotalRewardsSpan = document.createElement('span');
-        mainTotalRewardsSpan.className = 'text-green-600 text-sm ml-2';
-        mainTotalRewardsSpan.textContent = `(Donations: ${Math.floor(this.totalRewardsAmount)} XN [TESTING/FAKE])`;
-        
-        const mainTitle = document.querySelector('.top-total-burns-title');
-        if (mainTitle) {
-            // check if already has rewards, if so, update, otherwise add
-            const existingRewards = mainTitle.querySelector('.text-green-600');
-            if (existingRewards) {
-                existingRewards.textContent = mainTotalRewardsSpan.textContent;
-            } else {
-                mainTitle.appendChild(mainTotalRewardsSpan);
-            }
-        }
-
-        // update modal title
-        const modalTotalRewardsSpan = document.createElement('span');
-        modalTotalRewardsSpan.className = 'text-green-600 text-sm ml-2';
-        modalTotalRewardsSpan.textContent = `(Total Donations: ${Math.floor(this.totalRewardsAmount)} XN [TESTING/FAKE])`;
-        
-        // check if already has rewards, if so, update, otherwise add
-        const modalTitle = document.querySelector('#top-total-burns-modal .modal-title');
-        if (modalTitle) {
-            const existingModalRewards = modalTitle.querySelector('.text-green-600');
-            if (existingModalRewards) {
-                existingModalRewards.textContent = modalTotalRewardsSpan.textContent;
-            } else {
-                modalTitle.appendChild(modalTotalRewardsSpan);
-            }
-        }
     }
 }
